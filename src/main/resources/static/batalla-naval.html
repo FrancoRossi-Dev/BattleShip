@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batalla Naval</title>
+</head>
+
+<body>
+  <div id="tablero"></div>
+
+  <script type="module">
+    import CommandDispatcher from "./CommandDispatcher.js";
+    import BattleShipBoard from "./BattleShipBoard.js";
+
+    const view = CommandDispatcher.registerView("BatallaNaval", {
+      urlInicio: "/inicializarVista"
+    });
+
+    const board = new BattleShipBoard(
+      document.getElementById("tablero"),
+      CommandDispatcher,
+      { anchoMaximo: 1000, altoMaximo: 1000, tamanoFuente: 12, tamanoIcono: 28 }
+    );
+
+    CommandDispatcher.startView(view);
+  </script>
+</body>
+
+</html>
