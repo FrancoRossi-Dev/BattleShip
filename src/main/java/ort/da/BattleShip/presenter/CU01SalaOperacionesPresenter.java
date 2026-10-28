@@ -7,14 +7,16 @@ import ort.da.BattleShip.dto.TotalBatallasDto;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.Facade;
 
+import java.lang.ProcessBuilder.Redirect;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
+@RequestMapping("/SalaOperaciones")
 public class CU01SalaOperacionesPresenter {
 
     private Facade f;
@@ -36,11 +38,11 @@ public class CU01SalaOperacionesPresenter {
 
     @PostMapping("nuevaBatalla")
     public Commands nuevaBatalla() {
-        //TODO: process POST request
         
-        return null;
+        return Commands.create(CommonCommands.Redirection("nuevaBatalla.html"));
     }
     
+
 
     @PostMapping("reanudarBatalla")
     public Commands reanudarBatalla(@RequestParam String BatallaId) {
@@ -57,7 +59,7 @@ public class CU01SalaOperacionesPresenter {
             else {derrotas++;}
             }
         int porcentaje = victorias/batallas.size();
-        return new Command("lista historial Batallas", new TotalBatallasDto(batallas, victorias, derrotas, porcentaje));
+        return new Command("Historial Batallas", new TotalBatallasDto(batallas, victorias, derrotas, porcentaje));
     }
     
     /*

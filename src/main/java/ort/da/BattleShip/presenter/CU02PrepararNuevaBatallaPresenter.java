@@ -1,11 +1,28 @@
 package ort.da.BattleShip.presenter;
 
+
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ort.da.BattleShip.model.Facade;
+import org.springframework.web.bind.annotation.PostMapping;
+
 
 @RestController
-public class CU02PrepararNuevaBatallaPresenter {
+@RequestMapping("/nuevaBatalla")
 
-    private final Facade facade = Facade.getInstancia();
+public class CU02PrepararNuevaBatallaPresenter {
+    private Facade f;
+
+    public CU02PrepararNuevaBatallaPresenter (Facade facade) {
+        this.f = facade;
+    }
+
+    @PostMapping("conectarVista")
+    public Commands conectarVista() {
+
+        return null;
+    }
+    
+
 }
