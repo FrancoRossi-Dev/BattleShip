@@ -1,5 +1,9 @@
 package ort.da.BattleShip.model;
 
+import java.util.List;
+
+import ort.da.BattleShip.presenter.Battalla;
+
 public class Facade {
 
     private static Facade instancia;
@@ -16,5 +20,10 @@ public class Facade {
             instancia = new Facade();
         }
         return instancia;
+    }
+
+    public List<Batalla> getBatallas() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBatallas'");
     }
 }
