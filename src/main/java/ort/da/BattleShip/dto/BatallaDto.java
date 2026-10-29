@@ -19,11 +19,9 @@ public class BatallaDto {
     @Getter
     private int flotaPropiaSanas;
     @Getter
-    private int flotaPropiaTotal;
+    private int TamanoFlotas;
     @Getter
     private int flotaEnemigaSanas;
-    @Getter
-    private int flotaEnemigaTotal;
 
     public BatallaDto(Batalla b) {
         this.lugar = b.getLugar();
@@ -31,9 +29,8 @@ public class BatallaDto {
         this.alto = b.getAlto();
         this.estado = b.getEstado().getNombre();
         this.flotaPropiaSanas = b.getJugadorHumano().partesSanas(b.getFlota());
-        this.flotaPropiaTotal = b.getFlota().tamanoTotal();
+        this.TamanoFlotas = b.getFlota().tamanoTotal();
         this.flotaEnemigaSanas = b.getJugadorMaquina().partesSanas(b.getFlota());
-        this.flotaEnemigaTotal = b.getFlota().tamanoTotal();
     }
 
     public static List<BatallaDto> fromList(List<Batalla> batallas) {
