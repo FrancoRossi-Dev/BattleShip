@@ -64,7 +64,7 @@ Flujos alternativos
     */
     @PostMapping("/disparar")
     public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) {
-        String resultadoHumano = batalla.efectuarDisparo(CoorX, CoorY);
+        batalla.efectuarDisparo(CoorX, CoorY);
         // throw si es oceano amigo o si es un lugar que ya disparo
         // evaluar si el efectuar disparo debe seleccionar tambien el oceano 
         // (para avisar si el boludo se dispara a si mismo);
@@ -73,7 +73,7 @@ Flujos alternativos
         if (batalla.getEstado().equals("finalizado")){
             return Commands.create(juegoFinalizado(), actualizarTablero());
         } // @todo ver bien estado
-        String resultadoMaquina = batalla.efectuarDisparo(batalla.disparoMaquina()); 
+        batalla.efectuarDisparo(batalla.disparoMaquina()); 
         // yo lo resolveria con un metodo con sobrecarga, si tiene coordenadas es humano, si no tiene coordenadas es maquina
         if(batalla.getEstado().equals("finalizado")){
             return Commands.create(juegoFinalizado(), actualizarTablero(), revelarBarcos());
