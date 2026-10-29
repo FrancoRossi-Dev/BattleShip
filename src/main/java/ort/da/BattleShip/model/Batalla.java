@@ -7,37 +7,51 @@ import lombok.Getter;
 
 public class Batalla {
 
+    @Getter
+    private String lugar;
+    @Getter
     private Estado estado;
+    @Getter
     private Flota flota;
+    @Getter
     private JugadorHumano jugadorHumano;
+    @Getter
     private JugadorMaquina jugadorMaquina;
-    private final List<Ronda> rondas = new ArrayList<>();
+    @Getter
+    private List<Ronda> rondas = new ArrayList<>();
 
-    @Getter 
-    private String ganador;
-
-    public Estado getEstado() {
-        return estado;
+    public Batalla(String lugar, Tactica tactica, int ancho, int alto, List<TipoBarco> composicion) {
+        this.lugar = lugarOAleatorio(lugar);
+        this.estado = new Estado("En preparación");
+        this.flota = new Flota(composicion);
+        this.jugadorHumano = new JugadorHumano(ancho, alto);
+        this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
     }
 
-    public Flota getFlota() {
-        return flota;
+    public int getAncho() {
+        return jugadorHumano.getOceano().getAncho();
     }
 
-    public JugadorHumano getJugadorHumano() {
-        return jugadorHumano;
+    public int getAlto() {
+        return jugadorHumano.getOceano().getAlto();
     }
 
-    public JugadorMaquina getJugadorMaquina() {
-        return jugadorMaquina;
+    private String lugarOAleatorio(String lugar) {
+        if (lugar != null && !lugar.isBlank()) {
+            return lugar;
+        }
+        String aleatorio = "";
+        for (int i = 0; i < 6; i++) {
+            aleatorio += (char) ('A' + (int) (Math.random() * 26));
+        }
+        return aleatorio;
     }
 
-    public List<Ronda> getRondas() {
-        return rondas;
+    public boolean isGanada() {
+        return estado.getNombre().equals("Ganada");
     }
 
-    public String GetLugarCombate() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'GetLugarCombate'");
+    public boolean isPerdida() {
+        return estado.getNombre().equals("Perdida");
     }
 }

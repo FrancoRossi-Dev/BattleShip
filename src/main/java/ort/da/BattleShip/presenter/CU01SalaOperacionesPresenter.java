@@ -2,12 +2,10 @@ package ort.da.BattleShip.presenter;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import ort.da.BattleShip.dto.BatallaDto;
 import ort.da.BattleShip.dto.TotalBatallasDto;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.Facade;
 
-import java.lang.ProcessBuilder.Redirect;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,12 +25,10 @@ public class CU01SalaOperacionesPresenter {
     }
 
 
-    @PostMapping("conectarVista")
-    public Commands conectarVista() {
+    @PostMapping("vistaConectada")
+    public Commands vistaConectada() {
         batallas = f.getBatallas();
-        
-        
-        return Commands.create(MostrarHistorialBatallas(batallas));
+        return Commands.create(historialBatallas());
     }
 
 
@@ -51,15 +47,9 @@ public class CU01SalaOperacionesPresenter {
     }
     
 
-    private Command MostrarHistorialBatallas(List<Batalla> batallas) {
-        int victorias = 0, derrotas = 0;
-
-        for(Batalla b : batallas) {
-            if (b.getGanador().equals("humano")) {victorias++;}
-            else {derrotas++;}
-            }
-        int porcentaje = victorias/batallas.size();
-        return new Command("Historial Batallas", new TotalBatallasDto(batallas, victorias, derrotas, porcentaje));
+    private Command historialBatallas() {
+        return new Command("historialBatallas", new TotalBatallasDto(batallas,
+                f.cantidadGanadas(), f.cantidadPerdidas(), f.porcentajeExito()));
     }
     
     /*

@@ -3,11 +3,14 @@ package ort.da.BattleShip.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
 public class SistemaTacticas {
 
-    private final List<Tactica> tacticas = new ArrayList<>();
+    @Getter
+    private List<Tactica> tacticas = new ArrayList<>();
 
-    public List<Tactica> getTacticas() {
-        return tacticas;
+    public void agregar(Tactica tactica) {
+        tacticas.add(tactica);
     }
 }

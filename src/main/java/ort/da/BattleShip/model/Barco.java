@@ -3,21 +3,30 @@ package ort.da.BattleShip.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
 public class Barco {
 
-    private boolean vivo;
+    @Getter
     private TipoBarco tipo;
-    private final List<Celda> celdas = new ArrayList<>();
+    @Getter
+    private List<Celda> celdas = new ArrayList<>();
+
+    public Barco(TipoBarco tipo) {
+        this.tipo = tipo;
+    }
+
+    public int partesSanas() {
+        int sanas = tipo.getTamano();
+        for (Celda c : celdas) {
+            if (c.isDisparada()) {
+                sanas--;
+            }
+        }
+        return sanas;
+    }
 
     public boolean isVivo() {
-        return vivo;
-    }
-
-    public TipoBarco getTipo() {
-        return tipo;
-    }
-
-    public List<Celda> getCeldas() {
-        return celdas;
+        return partesSanas() > 0;
     }
 }
