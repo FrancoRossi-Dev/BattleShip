@@ -2,8 +2,6 @@ package ort.da.BattleShip.model;
 
 import java.util.List;
 
-import ort.da.BattleShip.presenter.Battalla;
-
 public class Facade {
 
     private static Facade instancia;
@@ -22,8 +20,39 @@ public class Facade {
         return instancia;
     }
 
+    public void agregar(Batalla batalla) throws BattleException {
+        sistemaBatalla.agregar(batalla);
+    }
+
     public List<Batalla> getBatallas() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBatallas'");
+        return sistemaBatalla.getBatallas();
+    }
+
+    public int cantidadGanadas() {
+        return sistemaBatalla.cantidadGanadas();
+    }
+
+    public int cantidadPerdidas() {
+        return sistemaBatalla.cantidadPerdidas();
+    }
+
+    public int porcentajeExito() {
+        return sistemaBatalla.porcentajeExito();
+    }
+
+    public void agregar(TipoBarco tipo) {
+        sistemaBarcos.agregar(tipo);
+    }
+
+    public List<TipoBarco> getTiposBarco() {
+        return sistemaBarcos.getTiposBarco();
+    }
+
+    public void agregar(Tactica tactica) {
+        sistemaTacticas.agregar(tactica);
+    }
+
+    public List<Tactica> getTacticas() {
+        return sistemaTacticas.getTacticas();
     }
 }

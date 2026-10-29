@@ -1,15 +1,14 @@
 package ort.da.BattleShip.model;
 
-public class JugadorMaquina {
+import lombok.Getter;
 
-    private Oceano oceano;
+public class JugadorMaquina extends Jugador {
+
+    @Getter
     private Tactica tactica;
 
-    public Oceano getOceano() {
-        return oceano;
-    }
-
-    public Tactica getTactica() {
-        return tactica;
+    public JugadorMaquina(int ancho, int alto, Tactica tactica) {
+        super(ancho, alto);
+        this.tactica = tactica;
     }
 }

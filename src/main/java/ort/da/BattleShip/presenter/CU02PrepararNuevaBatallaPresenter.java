@@ -18,8 +18,8 @@ public class CU02PrepararNuevaBatallaPresenter {
         this.f = facade;
     }
 
-    @PostMapping("conectarVista")
-    public Commands conectarVista() {
+    @PostMapping("vistaConectada")
+    public Commands vistaConectada() {
 
         return null;
     }

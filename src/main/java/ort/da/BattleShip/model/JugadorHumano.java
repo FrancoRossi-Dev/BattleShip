@@ -1,10 +1,8 @@
 package ort.da.BattleShip.model;
 
-public class JugadorHumano {
+public class JugadorHumano extends Jugador {
 
-    private Oceano oceano;
-
-    public Oceano getOceano() {
-        return oceano;
+    public JugadorHumano(int ancho, int alto) {
+        super(ancho, alto);
     }
 }

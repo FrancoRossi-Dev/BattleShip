@@ -1,10 +1,16 @@
 package ort.da.BattleShip.model;
 
+import lombok.Getter;
+
 public class TipoBarco {
 
-    private int size;
+    @Getter
+    private String nombre;
+    @Getter
+    private int tamano;
 
-    public int getSize() {
-        return size;
+    public TipoBarco(String nombre, int tamano) {
+        this.nombre = nombre;
+        this.tamano = tamano;
     }
 }
