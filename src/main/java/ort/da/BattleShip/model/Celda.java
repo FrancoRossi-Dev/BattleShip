@@ -32,4 +32,9 @@ public class Celda {
         this.disparo = new Disparo(this);
         return disparo;
     }
+
+    public void setBarco(Barco b) throws BattleException {
+        if(this.barco != null) throw new BattleException("La celda ya está ocupada");
+        this.barco = b;
+    }
 }

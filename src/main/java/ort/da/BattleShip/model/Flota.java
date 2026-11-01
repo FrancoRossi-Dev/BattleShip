@@ -23,4 +23,21 @@ public class Flota {
         }
         return total;
     }
+
+    public boolean contiene(TipoBarco tb) {
+        for (Barco b : barcos) {
+            if (b.getTipo().equals(tb)) return true;
+        }
+        return false;
+    }
+
+    public void remover(TipoBarco tb) {
+        for (Barco b : barcos) {
+            if (b.getTipo().equals(tb)) {
+                barcos.remove(b);
+                return;
+            }
+        }
+    }
+
 }

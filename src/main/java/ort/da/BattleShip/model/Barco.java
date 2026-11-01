@@ -29,4 +29,12 @@ public class Barco {
     public boolean isVivo() {
         return partesSanas() > 0;
     }
+
+    public int getTamano() {
+        return tipo.getTamano();
+    }
+
+    public void addCelda(Celda c) {
+        if (c != null) celdas.add(c);
+    }
 }

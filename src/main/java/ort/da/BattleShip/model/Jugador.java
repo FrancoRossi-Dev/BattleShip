@@ -19,4 +19,8 @@ public abstract class Jugador {
     public Disparo recibirDisparo(Celda o) throws BattleException {
         return oceano.recibirDisparo(o);
     };
+
+    public void desplegarBarco(TipoBarco b, int coorX, int coorY, String orientacion) throws BattleException {
+        oceano.desplegarBarco(b, coorX, coorY, orientacion);
+    }
 }

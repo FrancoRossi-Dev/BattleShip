@@ -1,5 +1,8 @@
 package ort.da.BattleShip.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 
 public class Oceano {
@@ -10,7 +13,10 @@ public class Oceano {
     private int alto;
 
     private Celda[][] celdas;
-    // cambio a matriz para busqueda directa;
+
+    // evaluar si es necesario, es lo que permite que varias 
+    // celdas apunten a una misma entidad y se pueda recorrer luego
+    private List<Barco> barcos = new ArrayList<Barco>();
 
     private int impactos = 0;
 
@@ -24,19 +30,6 @@ public class Oceano {
             }
         }
     }
-
-    // esto puede ser un contador no? pero es eficiencia boluda
-    // public int partesImpactadas() {
-    //     int impactadas = 0;
-    //     for (Celda[] fila : celdas) {
-    //         for(Celda c : fila) {
-    //             if (c.getBarco() != null && c.isDisparada()) {
-    //                 impactadas++;
-    //         }
-    //         }
-    //     }
-    //     return impactadas;
-    // }
 
     public int partesImpactadas() {
         return impactos;
@@ -54,5 +47,64 @@ public class Oceano {
         Disparo d = objetivo.recibirDisparo();
         if(d.isImpacto()) impactos++;
         return d;
+    }
+
+    public void desplegarBarco(
+        TipoBarco tb, 
+        int coorX, 
+        int coorY, 
+        String orientacion
+    ) throws BattleException {
+        boolean horizontal = orientacion.equals("HORIZONTAL");
+        if (!horizontal && !orientacion.equals("VERTICAL"))
+            throw new BattleException("Orientación inválida");
+
+
+        int nroCeldas = tb.getTamano();
+
+        // limites del barco
+        int ultimaX = coorX + nroCeldas - 1;
+        int ultimaY = coorY;
+        if (!horizontal) {
+            ultimaX = coorX;
+            ultimaY = coorY + nroCeldas -1;
+        }
+
+        // validar que esta dentro del tablero
+        if (coorX < 0 || coorY < 0 || ultimaX >= ancho || ultimaY >= alto)
+            throw new BattleException("Barco fuera de tablero");
+
+        List<Celda> celdasBarco = new ArrayList<>();
+        for (int i = 0; i < nroCeldas; i++) {
+            Celda c = celdas[coorY][coorX + i];
+            if (!horizontal) {
+                c = celdas[coorY + i][coorX];
+            }
+            validarAdjacentes(c);
+            celdasBarco.add(c);
+        }
+
+        Barco b = BarcoFactory.crear(tb);
+        for (Celda c : celdasBarco) {
+            c.setBarco(b);
+            b.addCelda(c);
+        }
+        this.barcos.add(b);
+    }
+
+    private void validarAdjacentes(Celda celda) throws BattleException {
+        // calcula el rango a evaluar, dejando afuera las celdas fuera del tablero
+        int desdeFila = Math.max(0, celda.getFila() - 1);
+        int hastaFila = Math.min(alto - 1, celda.getFila() + 1);
+        int desdeCol = Math.max(0, celda.getColumna() - 1);
+        int hastaCol = Math.min(ancho - 1, celda.getColumna() + 1);
+
+        // se valida previo a colocar el barco, por lo que no es necesario chequear contra uno mismo
+        for (int fila = desdeFila; fila <= hastaFila; fila++) {
+            for (int col = desdeCol; col <= hastaCol; col++) {
+                if (celdas[fila][col].getBarco() != null)
+                    throw new BattleException("No puede estar adjacente a otro barco");
+            }
+        }
     }
 }

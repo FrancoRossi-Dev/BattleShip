@@ -11,6 +11,11 @@ public class Batalla {
     private String lugar;
     @Getter
     private Estado estado;
+
+    // mover al estado
+    @Getter
+    private Flota pendienteAsignar;
+
     @Getter
     private Flota flota;
     @Getter
@@ -24,6 +29,7 @@ public class Batalla {
         this.lugar = lugarOAleatorio(lugar);
         this.estado = new Estado("En preparación");
         this.flota = new Flota(composicion);
+        this.pendienteAsignar = new Flota(composicion);
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
     }
@@ -69,6 +75,16 @@ public class Batalla {
         // cambiar a patron state
         if (jugadorHumano.partesSanas(flota) == 0) this.estado = new Estado("Perdida");
         if (jugadorMaquina.partesSanas(flota) == 0) this.estado = new Estado("Ganada");
+    }
+
+    public void desplegarBarco(Jugador j, TipoBarco tb, int coorX, int coorY, String orientacion) throws BattleException {
+        if (!pendienteAsignar.contiene(tb)) throw new BattleException("El barco no esta disponible");
+        j.desplegarBarco(tb, coorX, coorY, orientacion);
+        pendienteAsignar.remover(tb);
+    }
+
+    public boolean flotaDesplegada() {
+        return pendienteAsignar.getBarcos().isEmpty();
     }
 
 }
