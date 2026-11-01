@@ -7,10 +7,12 @@ public class TacticaSecuencial implements TacticaInterfaz {
         return "Táctica Secuencial";
     }
 
+    // como no saltea celdas, la cantidad de disparos alcanza para saber la posicion
     @Override
-    public Celda ElegirCelda() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ElegirCelda'");
+    public Celda ElegirCelda(HistorialDisparos historial) {
+        int disparos = historial.cantidad();
+        int ancho = historial.getAncho();
+        return new Celda(disparos / ancho, disparos % ancho);
     }
 
 }

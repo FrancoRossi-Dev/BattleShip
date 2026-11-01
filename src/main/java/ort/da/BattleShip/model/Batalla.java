@@ -68,6 +68,8 @@ public class Batalla {
             // resuelve el turno maquina
             Celda objetivoMaquina = jugadorMaquina.elegirObjetivo();
             Disparo d2 = resolverDisparo(jugadorHumano, objetivoMaquina);
+            jugadorMaquina.agregarAlHistorial(d2);
+
             if (d2.hundioBarco()) verificarGanador();
             r.setDisparoMaquina(d2);
         }

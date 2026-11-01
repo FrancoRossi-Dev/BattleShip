@@ -8,8 +8,8 @@ public class TacticaFactory {
 
         switch (tipo) {
             case "Espiral":
-                return new TacticaSecuencial();
-            case "Caza y Ataque":
+                return new TacticaEspiral();
+            case "Caza y ataque":
                 return new TacticaCazaYAtaque();
             case "Secuencial":
                 return new TacticaSecuencial();

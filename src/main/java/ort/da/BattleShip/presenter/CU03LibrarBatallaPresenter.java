@@ -56,15 +56,15 @@ public class CU03LibrarBatallaPresenter {
     Si un barco es hundido, se agrega a la lista de “Bajas enemigas”. 
     Si la flota enemiga es hundida, fin de la batalla. 
     4. Siguiendo la táctica de juego configurada, el oponente realiza su 
-correspondiente disparo, que es reflejado en el océano de “Aguas 
-propias”
+    correspondiente disparo, que es reflejado en el océano de “Aguas 
+    propias”
 
-Si la flota propia es hundida, fin de la batalla. 
-Esta secuencia se repite hasta que una flota es completamente hundida. 
+    Si la flota propia es hundida, fin de la batalla. 
+    Esta secuencia se repite hasta que una flota es completamente hundida. 
 
-Flujos alternativos 
- 2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
-2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
+    Flujos alternativos 
+    2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
+    2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
  
     */
     @PostMapping("/disparar")
