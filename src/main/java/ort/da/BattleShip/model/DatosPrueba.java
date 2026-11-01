@@ -20,9 +20,10 @@ public class DatosPrueba {
             facade.agregar(submarino);
             facade.agregar(destructor);
 
-            Tactica secuencial = new Tactica("Secuencial");
-            Tactica espiral = new Tactica("Espiral");
-            Tactica cazaYAtaque = new Tactica("Caza y ataque");
+
+            TacticaTipo secuencial = new TacticaTipo("Secuencial");
+            TacticaTipo espiral = new TacticaTipo("Espiral");
+            TacticaTipo cazaYAtaque = new TacticaTipo("Caza y ataque");
 
             facade.agregar(secuencial);
             facade.agregar(espiral);

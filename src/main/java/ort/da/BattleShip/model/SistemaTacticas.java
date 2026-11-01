@@ -8,9 +8,9 @@ import lombok.Getter;
 public class SistemaTacticas {
 
     @Getter
-    private List<Tactica> tacticas = new ArrayList<>();
+    private List<TacticaTipo> TiposDeTacticas = new ArrayList<>();
 
-    public void agregar(Tactica tactica) {
-        tacticas.add(tactica);
+    public void agregar(TacticaTipo tactica) {
+        TiposDeTacticas.add(tactica);
     }
 }

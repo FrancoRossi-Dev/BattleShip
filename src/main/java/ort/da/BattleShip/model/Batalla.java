@@ -20,7 +20,7 @@ public class Batalla {
     @Getter
     private List<Ronda> rondas = new ArrayList<>();
 
-    public Batalla(String lugar, Tactica tactica, int ancho, int alto, List<TipoBarco> composicion) {
+    public Batalla(String lugar, TacticaTipo tactica, int ancho, int alto, List<TipoBarco> composicion) {
         this.lugar = lugarOAleatorio(lugar);
         this.estado = new Estado("En preparación");
         this.flota = new Flota(composicion);
@@ -54,4 +54,21 @@ public class Batalla {
     public boolean isPerdida() {
         return estado.getNombre().equals("Perdida");
     }
+
+    public void jugarRonda(int coorX, int coorY) throws BattleException {
+        Ronda r = new Ronda();
+
+        verificarGanador(r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX)));
+        if (!isGanada()) verificarGanador(r.turnoMaquina(jugadorMaquina, jugadorHumano));
+
+        rondas.add(r);
+    }
+
+    private void verificarGanador(Disparo d) {
+        if (!d.hundioBarco()) return;
+        // cambiar a patron state
+        if (jugadorHumano.partesSanas(flota) == 0) this.estado = new Estado("Perdida");
+        if (jugadorMaquina.partesSanas(flota) == 0) this.estado = new Estado("Ganada");
+    }
+
 }

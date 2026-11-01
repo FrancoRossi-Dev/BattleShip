@@ -8,6 +8,7 @@ public class Celda {
     private int fila;
     @Getter
     private int columna;
+
     @Getter
     private Barco barco;
     @Getter
@@ -20,5 +21,15 @@ public class Celda {
 
     public boolean isDisparada() {
         return disparo != null;
+    }
+
+    public boolean estaEn(int fila, int columna) {
+        return this.fila == fila && this.columna == columna;
+    }
+
+    public Disparo recibirDisparo() throws BattleException {
+        if(isDisparada()) throw new BattleException("La celda objetivo ya fue disparada");
+        this.disparo = new Disparo(this);
+        return disparo;
     }
 }

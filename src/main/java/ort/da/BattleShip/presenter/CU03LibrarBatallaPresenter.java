@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ort.da.BattleShip.model.Batalla;
+import ort.da.BattleShip.model.BattleException;
+import ort.da.BattleShip.model.Celda;
 import ort.da.BattleShip.model.Facade;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/librarBatalla")
 public class CU03LibrarBatallaPresenter {
     private Facade f;
-    private Batalla batalla;
+    private Batalla batallaActual;
+
     public CU03LibrarBatallaPresenter (Facade f) {
         this.f = f;
     }
@@ -38,11 +41,13 @@ public class CU03LibrarBatallaPresenter {
     - Un botón “Volver a la sala de operaciones” 
     */
     @PostMapping("vistaConectada")
-    public Commands vistaConectada(@RequestParam String idBatalla) {
-        batalla = f.getBatalla(idBatalla);
+    public Commands vistaConectada(@RequestParam int idBatalla) throws BattleException {
+        batallaActual = f.getBatalla(idBatalla);
         
         return Commands.create(MostrarEstadisticaBatalla(), HabilitarJuego());
     }
+
+
     /*
     2. Selecciona (haciendo click) una 
     coordenada en el océano de “Aguas 
@@ -51,34 +56,23 @@ public class CU03LibrarBatallaPresenter {
     Si un barco es hundido, se agrega a la lista de “Bajas enemigas”. 
     Si la flota enemiga es hundida, fin de la batalla. 
     4. Siguiendo la táctica de juego configurada, el oponente realiza su 
-correspondiente disparo, que es reflejado en el océano de “Aguas 
-propias”
+    correspondiente disparo, que es reflejado en el océano de “Aguas 
+    propias”
 
-Si la flota propia es hundida, fin de la batalla. 
-Esta secuencia se repite hasta que una flota es completamente hundida. 
+    Si la flota propia es hundida, fin de la batalla. 
+    Esta secuencia se repite hasta que una flota es completamente hundida. 
 
-Flujos alternativos 
- 2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
-2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
+    Flujos alternativos 
+    2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
+    2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
  
     */
     @PostMapping("/disparar")
-    public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) {
-        batalla.efectuarDisparo(CoorX, CoorY);
-        // throw si es oceano amigo o si es un lugar que ya disparo
-        // evaluar si el efectuar disparo debe seleccionar tambien el oceano 
-        // (para avisar si el boludo se dispara a si mismo);
-        
-        // "si un barco es hundido, se agrega a la lista..." mediante observer
-        if (batalla.getEstado().equals("finalizado")){
+    public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
+        batallaActual.jugarRonda(CoorX, CoorY);
+        if (batallaActual.isGanada() || batallaActual.isPerdida()) {
             return Commands.create(juegoFinalizado(), actualizarTablero());
-        } // @todo ver bien estado
-        batalla.efectuarDisparo(batalla.disparoMaquina()); 
-        // yo lo resolveria con un metodo con sobrecarga, si tiene coordenadas es humano, si no tiene coordenadas es maquina
-        if(batalla.getEstado().equals("finalizado")){
-            return Commands.create(juegoFinalizado(), actualizarTablero(), revelarBarcos());
         }
-        // esto se debe poder hacer de una mejor manera pero seria la idea
         return Commands.create(actualizarTablero());
     }
      
@@ -88,6 +82,7 @@ Flujos alternativos
     6. La batalla se pausa en la situación actual y se ejecuta el CU01. 
     Postcondiciones 
     */
+
 
     @PostMapping("/volverASala")
     public Commands volverASala() {
@@ -159,5 +154,31 @@ Flujos alternativos
     
     */
 
+// COMANDS
+
+    private Command HabilitarJuego() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'HabilitarJuego'");
+    }
+
+    private Command MostrarEstadisticaBatalla() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'MostrarEstadisticaBatalla'");
+    }
+
+    private Command revelarBarcos() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'revelarBarcos'");
+    }
+
+    private Command actualizarTablero() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'actualizarTablero'");
+    }
+
+    private Command juegoFinalizado() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'juegoFinalizado'");
+    }
 
 }
