@@ -7,11 +7,11 @@ public class TacticaFactory {
         String tipo = tactica.getNombre();
 
         switch (tipo) {
-            case "Espiral":
+            case TacticaTipo.ESPIRAL:
                 return new TacticaEspiral();
-            case "Caza y ataque":
+            case TacticaTipo.CAZA_Y_ATAQUE:
                 return new TacticaCazaYAtaque();
-            case "Secuencial":
+            case TacticaTipo.SECUENCIAL:
                 return new TacticaSecuencial();
             default: 
                 return null;
