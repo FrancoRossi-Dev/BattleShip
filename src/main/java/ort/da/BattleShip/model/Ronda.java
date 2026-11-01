@@ -1,13 +1,23 @@
 package ort.da.BattleShip.model;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public class Ronda {
 
-    @Getter @Setter 
+    @Getter
     private Disparo disparoHumano;
-    @Getter @Setter 
+    @Getter
     private Disparo disparoMaquina;
+
+    public Disparo turnoHumano(Jugador rival, Celda objetivo) throws BattleException {
+        disparoHumano = rival.recibirDisparo(objetivo);
+        return disparoHumano;
+    }
+
+    public Disparo turnoMaquina(JugadorMaquina maquina, Jugador rival) throws BattleException {
+        disparoMaquina = rival.recibirDisparo(maquina.elegirObjetivo());
+        maquina.agregarAlHistorial(disparoMaquina);
+        return disparoMaquina;
+    }
 
 }

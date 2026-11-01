@@ -58,30 +58,14 @@ public class Batalla {
     public void jugarRonda(int coorX, int coorY) throws BattleException {
         Ronda r = new Ronda();
 
-        // resuelve el turno humano
-        Celda objetivo = new Celda(coorY, coorX);
-        Disparo d1 = resolverDisparo(jugadorMaquina, objetivo);
-        if (d1.hundioBarco()) verificarGanador();
-        r.setDisparoHumano(d1);
-        
-        if (!isGanada()) {   
-            // resuelve el turno maquina
-            Celda objetivoMaquina = jugadorMaquina.elegirObjetivo();
-            Disparo d2 = resolverDisparo(jugadorHumano, objetivoMaquina);
-            jugadorMaquina.agregarAlHistorial(d2);
-
-            if (d2.hundioBarco()) verificarGanador();
-            r.setDisparoMaquina(d2);
-        }
+        verificarGanador(r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX)));
+        if (!isGanada()) verificarGanador(r.turnoMaquina(jugadorMaquina, jugadorHumano));
 
         rondas.add(r);
     }
 
-    private Disparo resolverDisparo(Jugador j, Celda o) throws BattleException {
-        return j.recibirDisparo(o);
-    }
-
-    private void verificarGanador() {
+    private void verificarGanador(Disparo d) {
+        if (!d.hundioBarco()) return;
         // cambiar a patron state
         if (jugadorHumano.partesSanas(flota) == 0) this.estado = new Estado("Perdida");
         if (jugadorMaquina.partesSanas(flota) == 0) this.estado = new Estado("Ganada");
