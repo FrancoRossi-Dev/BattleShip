@@ -48,11 +48,20 @@ public class Facade {
         return sistemaBarcos.getTiposBarco();
     }
 
-    public void agregar(Tactica tactica) {
+    public void agregar(TacticaTipo tactica) {
         sistemaTacticas.agregar(tactica);
     }
 
-    public List<Tactica> getTacticas() {
-        return sistemaTacticas.getTacticas();
+    public List<TacticaTipo> getTacticas() {
+        return sistemaTacticas.getTiposDeTacticas();
+    }
+
+    public Celda GetCelda(int coorX, int coorY) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'GetCelda'");
+    }
+
+    public Batalla getBatalla(int idBatalla) throws BattleException {
+        return sistemaBatalla.getBatalla(idBatalla);
     }
 }

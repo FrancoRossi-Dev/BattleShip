@@ -1,15 +1,13 @@
 package ort.da.BattleShip.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class Ronda {
 
+    @Getter @Setter 
     private Disparo disparoHumano;
+    @Getter @Setter 
     private Disparo disparoMaquina;
 
-    public Disparo getDisparoHumano() {
-        return disparoHumano;
-    }
-
-    public Disparo getDisparoMaquina() {
-        return disparoMaquina;
-    }
 }

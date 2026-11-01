@@ -14,4 +14,9 @@ public abstract class Jugador {
     public int partesSanas(Flota flota) {
         return flota.tamanoTotal() - oceano.partesImpactadas();
     }
+
+
+    public Disparo recibirDisparo(Celda o) throws BattleException {
+        return oceano.recibirDisparo(o);
+    };
 }
