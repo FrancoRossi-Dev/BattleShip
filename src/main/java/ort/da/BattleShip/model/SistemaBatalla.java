@@ -46,9 +46,9 @@ public class SistemaBatalla {
         return cantidadGanadas() * 100 / batallas.size();
     }
 
-    public Batalla getBatalla(int id) throws BattleException {
-        Batalla b = batallas.get(id);
-        if (b == null) throw new BattleException("Batalla desconocida");
-        return b;
+    public Batalla getBatalla(int pos) throws BattleException {
+        if (pos < 0 || pos >= batallas.size()) 
+            throw new BattleException("Batalla desconocida");
+        return batallas.get(pos);
     }
 }
