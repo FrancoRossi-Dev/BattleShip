@@ -10,10 +10,30 @@ public class Flota {
     @Getter
     private List<Barco> barcos = new ArrayList<>();
 
-    public Flota(List<TipoBarco> composicion) {
-        for (TipoBarco tipo : composicion) {
-            barcos.add(new Barco(tipo));
+    private static final int MAX_POR_TIPO = 6;
+
+    public Flota(List<TipoBarco> tipos, int[] cantidades) throws BattleException {
+        if (cantidades.length != tipos.size()) throw new BattleException("Configuración de flota inválida");
+        for (int i = 0; i < tipos.size(); i++) {
+            agregar(tipos.get(i), cantidades[i]);
         }
+        if (barcos.isEmpty()) throw new BattleException("La flota debe tener al menos un barco");
+    }
+
+    private void agregar(TipoBarco tipo, int cantidad) throws BattleException {
+        if (cantidad < 0 || cantidad > MAX_POR_TIPO)
+            throw new BattleException("La cantidad de " + tipo.getNombre() + " debe estar entre 0 y " + MAX_POR_TIPO);
+        for (int i = 0; i < cantidad; i++) {
+            agregarOrdenado(new Barco(tipo));
+        }
+    }
+
+    private void agregarOrdenado(Barco nuevo) {
+        int pos = 0;
+        while (pos < barcos.size() && barcos.get(pos).getTamano() >= nuevo.getTamano()) {
+            pos++;
+        }
+        barcos.add(pos, nuevo);
     }
 
     public int tamanoTotal() {
@@ -22,13 +42,6 @@ public class Flota {
             total += b.getTipo().getTamano();
         }
         return total;
-    }
-
-    public boolean contiene(TipoBarco tb) {
-        for (Barco b : barcos) {
-            if (b.getTipo().equals(tb)) return true;
-        }
-        return false;
     }
 
     public void remover(TipoBarco tb) {

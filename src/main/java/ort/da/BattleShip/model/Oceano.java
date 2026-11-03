@@ -76,10 +76,9 @@ public class Oceano {
 
         List<Celda> celdasBarco = new ArrayList<>();
         for (int i = 0; i < nroCeldas; i++) {
-            Celda c = celdas[coorY][coorX + i];
-            if (!horizontal) {
-                c = celdas[coorY + i][coorX];
-            }
+            Celda c;
+            if (horizontal) c = celdas[coorY][coorX + i];
+            else c = celdas[coorY + i][coorX];
             validarAdjacentes(c);
             celdasBarco.add(c);
         }
@@ -103,7 +102,7 @@ public class Oceano {
         for (int fila = desdeFila; fila <= hastaFila; fila++) {
             for (int col = desdeCol; col <= hastaCol; col++) {
                 if (celdas[fila][col].getBarco() != null)
-                    throw new BattleException("No puede estar adjacente a otro barco");
+                    throw new BattleException("No puede estar adyacente a otro barco");
             }
         }
     }

@@ -1,5 +1,6 @@
 package ort.da.BattleShip.presenter;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 // CU03: LIBRAR BATALLA 
 @RestController
 @RequestMapping("/librarBatalla")
+@Scope("session")
 public class CU03LibrarBatallaPresenter {
     private Facade f;
     private Batalla batallaActual;

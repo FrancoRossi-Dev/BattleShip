@@ -29,8 +29,9 @@ public class DatosPrueba {
             facade.agregar(espiral);
             facade.agregar(cazaYAtaque);
 
-            List<TipoBarco> flotaMalvinas = List.of(crucero, submarino, destructor);
-            facade.agregar(new Batalla("Malvinas", espiral, 8, 8, flotaMalvinas));
+            List<TipoBarco> tiposMalvinas = List.of(crucero, submarino, destructor);
+            int[] cantidadesMalvinas = {1, 1, 1};
+            facade.agregar(new Batalla("Malvinas", espiral, 8, 8, tiposMalvinas, cantidadesMalvinas));
 
         } catch (BattleException e) {
             System.out.println("Error al cargar datos de prueba " + e.getMessage());

@@ -25,13 +25,33 @@ public class Batalla {
     @Getter
     private List<Ronda> rondas = new ArrayList<>();
 
-    public Batalla(String lugar, TacticaTipo tactica, int ancho, int alto, List<TipoBarco> composicion) {
+    private static final int MIN_LADO = 6;
+    private static final int MAX_LADO = 12;
+
+    public Batalla(String lugar, TacticaTipo tactica, int ancho, int alto, List<TipoBarco> tipos, int[] cantidades)
+            throws BattleException {
+        validarLado(ancho, "horizontales");
+        validarLado(alto, "verticales");
+        this.flota = new Flota(tipos, cantidades);
+        validarDensidad(ancho, alto);
+
         this.lugar = lugarOAleatorio(lugar);
         this.estado = new Estado("En preparación");
-        this.flota = new Flota(composicion);
-        this.pendienteAsignar = new Flota(composicion);
+        this.pendienteAsignar = new Flota(tipos, cantidades);
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
+        jugadorMaquina.desplegarAleatorio(flota);
+    }
+
+    private void validarLado(int celdas, String sentido) throws BattleException {
+        if (celdas < MIN_LADO || celdas > MAX_LADO)
+            throw new BattleException("El océano debe tener entre " + MIN_LADO + " y " + MAX_LADO + " celdas " + sentido);
+    }
+
+    // celdas de la flota / celdas del océano < 0.25, sin decimales
+    private void validarDensidad(int ancho, int alto) throws BattleException {
+        if (flota.tamanoTotal() * 4 >= ancho * alto)
+            throw new BattleException("La flota debe ocupar menos del 25% del océano");
     }
 
     public int getAncho() {
@@ -77,10 +97,17 @@ public class Batalla {
         if (jugadorMaquina.partesSanas(flota) == 0) this.estado = new Estado("Ganada");
     }
 
-    public void desplegarBarco(Jugador j, TipoBarco tb, int coorX, int coorY, String orientacion) throws BattleException {
-        if (!pendienteAsignar.contiene(tb)) throw new BattleException("El barco no esta disponible");
-        j.desplegarBarco(tb, coorX, coorY, orientacion);
+    public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+        if (flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
+        TipoBarco tb = pendienteAsignar.getBarcos().get(0).getTipo();
+        jugadorHumano.desplegarBarco(tb, coorX, coorY, orientacion);
         pendienteAsignar.remover(tb);
+    }
+
+    public void librarBatalla() throws BattleException {
+        if (!estado.getNombre().equals("En preparación")) throw new BattleException("La batalla ya comenzó");
+        if (!flotaDesplegada()) throw new BattleException("Debe posicionar todos sus barcos primero");
+        this.estado = new Estado("En combate");
     }
 
     public boolean flotaDesplegada() {
