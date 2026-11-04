@@ -10,7 +10,7 @@ public class Batalla {
     @Getter
     private String lugar;
     @Getter
-    private Estado estado;
+    private EstadoBatalla estado;
 
     // mover al estado
     @Getter
@@ -36,7 +36,7 @@ public class Batalla {
         validarDensidad(ancho, alto);
 
         this.lugar = lugarOAleatorio(lugar);
-        this.estado = new Estado("En preparación");
+        this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
         this.pendienteAsignar = new Flota(tipos, cantidades);
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
@@ -74,11 +74,11 @@ public class Batalla {
     }
 
     public boolean isGanada() {
-        return estado.getNombre().equals("Ganada");
+        return estado.getResultado().equals("Ganada");
     }
 
     public boolean isPerdida() {
-        return estado.getNombre().equals("Perdida");
+        return estado.getResultado().equals("Perdida");
     }
 
     public void jugarRonda(int coorX, int coorY) throws BattleException {
@@ -92,9 +92,7 @@ public class Batalla {
 
     private void verificarGanador(Disparo d) {
         if (!d.hundioBarco()) return;
-        // cambiar a patron state
-        if (jugadorHumano.partesSanas(flota) == 0) this.estado = new Estado("Perdida");
-        if (jugadorMaquina.partesSanas(flota) == 0) this.estado = new Estado("Ganada");
+        this.estado.verificarGanador();
     }
 
     public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
@@ -112,6 +110,16 @@ public class Batalla {
 
     public boolean flotaDesplegada() {
         return pendienteAsignar.getBarcos().isEmpty();
+    }
+
+    public boolean derrota() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'derrota'");
+    }
+
+    public boolean victoria() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'victoria'");
     }
 
 }

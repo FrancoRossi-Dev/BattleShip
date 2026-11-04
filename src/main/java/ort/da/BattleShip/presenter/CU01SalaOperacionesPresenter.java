@@ -8,6 +8,7 @@ import ort.da.BattleShip.model.Facade;
 
 import java.util.List;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/SalaOperaciones")
+@Scope("session")
 public class CU01SalaOperacionesPresenter {
 
     private Facade f;
