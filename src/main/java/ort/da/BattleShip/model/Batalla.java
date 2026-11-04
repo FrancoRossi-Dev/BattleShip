@@ -18,29 +18,46 @@ public class Batalla {
 
     @Getter
     private Flota flota;
+
     @Getter
     private JugadorHumano jugadorHumano;
     @Getter
     private JugadorMaquina jugadorMaquina;
     @Getter
     private List<Ronda> rondas = new ArrayList<>();
+    @Getter 
+    private int ancho, alto;
 
     private static final int MIN_LADO = 6;
     private static final int MAX_LADO = 12;
 
-    public Batalla(String lugar, TacticaTipo tactica, int ancho, int alto, List<TipoBarco> tipos, int[] cantidades)
-            throws BattleException {
-        validarLado(ancho, "horizontales");
-        validarLado(alto, "verticales");
-        this.flota = new Flota(tipos, cantidades);
-        validarDensidad(ancho, alto);
+    public Batalla(
+        String lugar, 
+        TacticaTipo tactica, 
+        int ancho, 
+        int alto, 
+        List<TipoBarco> tipos, 
+        int[] cantidades) throws BattleException {
 
+        this.flota = new Flota(tipos, cantidades);
+        this.ancho = ancho;
+        this.alto = alto;
         this.lugar = lugarOAleatorio(lugar);
-        this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
         this.pendienteAsignar = new Flota(tipos, cantidades);
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
+        
+        this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
+
         jugadorMaquina.desplegarAleatorio(flota);
+
+        validar();
+    }
+
+    private void validar() throws BattleException {
+        validarLado(this.ancho, "horizontales");
+        validarLado(this.alto, "verticales");
+        validarDensidad();
     }
 
     private void validarLado(int celdas, String sentido) throws BattleException {
@@ -49,17 +66,9 @@ public class Batalla {
     }
 
     // celdas de la flota / celdas del océano < 0.25, sin decimales
-    private void validarDensidad(int ancho, int alto) throws BattleException {
-        if (flota.tamanoTotal() * 4 >= ancho * alto)
+    private void validarDensidad() throws BattleException {
+        if (flota.tamanoTotal() * 4 >= this.ancho * this.alto)
             throw new BattleException("La flota debe ocupar menos del 25% del océano");
-    }
-
-    public int getAncho() {
-        return jugadorHumano.getOceano().getAncho();
-    }
-
-    public int getAlto() {
-        return jugadorHumano.getOceano().getAlto();
     }
 
     private String lugarOAleatorio(String lugar) {
@@ -73,53 +82,64 @@ public class Batalla {
         return aleatorio;
     }
 
+    public void cambiarEstado(EstadoTipo tipo) throws BattleException {
+        this.estado = EstadoFactory.crearEstadoBatalla(tipo, this);
+    }
+
     public boolean isGanada() {
-        return estado.getResultado().equals("Ganada");
+        return estado.getResultado().equals(EstadoFinalizada.VICTORIA);
     }
 
     public boolean isPerdida() {
-        return estado.getResultado().equals("Perdida");
+        return estado.getResultado().equals(EstadoFinalizada.DERROTA);
+    }
+
+    // operaciones dependientes del estado: se delegan
+    public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+        estado.desplegarBarco(coorX, coorY, orientacion);
+    }
+
+    public void librarBatalla() throws BattleException {
+        estado.librarBatalla();
     }
 
     public void jugarRonda(int coorX, int coorY) throws BattleException {
-        Ronda r = new Ronda();
-
-        verificarGanador(r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX)));
-        if (!isGanada()) verificarGanador(r.turnoMaquina(jugadorMaquina, jugadorHumano));
-
-        rondas.add(r);
+        estado.jugarRonda(coorX, coorY);
     }
 
-    private void verificarGanador(Disparo d) {
-        if (!d.hundioBarco()) return;
-        this.estado.verificarGanador();
-    }
-
-    public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+    // trabajo real, invocado por los estados
+    protected void hacerDesplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
         if (flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
         TipoBarco tb = pendienteAsignar.getBarcos().get(0).getTipo();
         jugadorHumano.desplegarBarco(tb, coorX, coorY, orientacion);
         pendienteAsignar.remover(tb);
     }
 
-    public void librarBatalla() throws BattleException {
-        if (!estado.getNombre().equals("En preparación")) throw new BattleException("La batalla ya comenzó");
-        if (!flotaDesplegada()) throw new BattleException("Debe posicionar todos sus barcos primero");
-        this.estado = new Estado("En combate");
+    protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
+        return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
+    }
+
+    protected Disparo hacerTurnoMaquina(Ronda r) throws BattleException {
+        return r.turnoMaquina(jugadorMaquina, jugadorHumano);
+    }
+
+    protected void agregarRonda(Ronda r) {
+        rondas.add(r);
     }
 
     public boolean flotaDesplegada() {
         return pendienteAsignar.getBarcos().isEmpty();
     }
 
-    public boolean derrota() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'derrota'");
+    public boolean flotaMaquinaHundida() {
+        return jugadorMaquina.flotaHundida();
     }
 
-    public boolean victoria() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'victoria'");
+    public boolean flotaHumanaHundida() {
+        return jugadorHumano.flotaHundida();
     }
 
+    public String getNombreEstado() {
+        return estado.getClass().getSimpleName();
+    }
 }

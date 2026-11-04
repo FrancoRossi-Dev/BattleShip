@@ -3,40 +3,38 @@ package ort.da.BattleShip.model;
 import lombok.Getter;
 
 public class EstadoFinalizada extends EstadoBatalla {
-    
-    @Getter 
+
+    public static final String VICTORIA = "Victoria";
+    public static final String DERROTA = "Derrota";
+
+    @Getter
     private String resultado;
-    
+
     public EstadoFinalizada(Batalla b, String r) throws BattleException {
-        this.resultado = r;
         super(b);
-        validate();
-    }
-    
-    private void validate() throws BattleException {
-        if (this.resultado != "Victoria" && this.resultado != "Derrota") 
+        if (!VICTORIA.equals(r) && !DERROTA.equals(r))
             throw new BattleException("Resultado no valido");
+        this.resultado = r;
     }
 
     @Override
-    protected void derrota() throws BattleException {
-        throw new BattleException("La batalla ya esta finalizada");
-    }
-    
-    @Override
-    protected void victoria() throws BattleException {
-        throw new BattleException("La batalla ya esta finalizada");
+    public String getNombre() {
+        return "Finalizada";
     }
 
     @Override
-    protected void verificarGanador() throws BattleException {
-        if(this.getBatalla().derrota()) derrota();
-        if(this.getBatalla().victoria()) victoria();
+    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+        throw new BattleException("La batalla ya está finalizada");
     }
 
     @Override
-    public EstadoBatalla cambiarEstado() throws BattleException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'cambiarEstado'");
+    protected void librarBatalla() throws BattleException {
+        throw new BattleException("La batalla ya está finalizada");
     }
+
+    @Override
+    protected void jugarRonda(int coorX, int coorY) throws BattleException {
+        throw new BattleException("La batalla ya está finalizada");
+    }
+
 }

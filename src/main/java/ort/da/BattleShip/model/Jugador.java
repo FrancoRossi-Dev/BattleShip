@@ -16,6 +16,10 @@ public abstract class Jugador {
     }
 
 
+    public boolean flotaHundida() {
+        return oceano.flotaHundida();
+    }
+
     public Disparo recibirDisparo(Celda o) throws BattleException {
         return oceano.recibirDisparo(o);
     };

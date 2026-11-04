@@ -3,21 +3,21 @@ package ort.da.BattleShip.model;
 import lombok.Getter;
 
 public abstract class EstadoBatalla {
-    @Getter 
+    @Getter
     private Batalla batalla;
 
     public EstadoBatalla(Batalla b) {
         this.batalla = b;
     }
 
-    public abstract EstadoBatalla cambiarEstado() throws BattleException;
+    public abstract String getNombre();
 
     public abstract String getResultado();
 
-    protected abstract void derrota() throws BattleException;
+    protected abstract void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException;
 
-    protected abstract void victoria() throws BattleException;
+    protected abstract void librarBatalla() throws BattleException;
 
-    protected abstract void verificarGanador() throws BattleException;
+    protected abstract void jugarRonda(int coorX, int coorY) throws BattleException;
 
 }

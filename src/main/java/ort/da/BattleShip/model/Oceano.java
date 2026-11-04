@@ -35,6 +35,13 @@ public class Oceano {
         return impactos;
     }
 
+    public boolean flotaHundida() {
+        for (Barco b : barcos) {
+            if (b.isVivo()) return false;
+        }
+        return !barcos.isEmpty();
+    }
+
     public Celda getCelda(int coorX, int coorY) throws BattleException {
         if(coorX >= ancho || coorX < 0 || coorY >= alto || coorY < 0) 
             throw new BattleException("Disparo fuera de tablero");
