@@ -4,26 +4,35 @@ import lombok.Getter;
 
 public class EstadoFinalizada extends EstadoBatalla {
 
-    public static final String VICTORIA = "Victoria";
-    public static final String DERROTA = "Derrota";
+    public static final String GANADA = "Ganada";
+    public static final String PERDIDA = "Perdida";
 
     @Getter
     private String resultado;
 
-    public EstadoFinalizada(Batalla b, String r) throws BattleException {
+    public EstadoFinalizada(Batalla b, String resultado) throws BattleException {
         super(b);
-        if (!VICTORIA.equals(r) && !DERROTA.equals(r))
-            throw new BattleException("Resultado no valido");
-        this.resultado = r;
+
+        if(resultado.equals(GANADA)) {
+            this.resultado = GANADA;
+            return; 
+        }
+
+        if(resultado.equals(PERDIDA)) {
+            this.resultado = PERDIDA;
+            return; 
+        } 
+
+        throw new BattleException("Resultado no valido");
     }
 
     @Override
     public String getNombre() {
-        return "Finalizada";
+        return resultado;
     }
 
     @Override
-    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+    protected void desplegarBarco(int indiceBarco, int coorX, int coorY, String orientacion) throws BattleException {
         throw new BattleException("La batalla ya está finalizada");
     }
 

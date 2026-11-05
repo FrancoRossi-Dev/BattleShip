@@ -69,6 +69,7 @@ public class CU03LibrarBatallaPresenter {
     2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
  
     */
+   
     @PostMapping("/disparar")
     public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
         batallaActual.jugarRonda(CoorX, CoorY);

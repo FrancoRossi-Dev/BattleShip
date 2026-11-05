@@ -44,13 +44,14 @@ public class Flota {
         return total;
     }
 
-    public void remover(TipoBarco tb) {
-        for (Barco b : barcos) {
-            if (b.getTipo().equals(tb)) {
-                barcos.remove(b);
-                return;
-            }
-        }
+    public Barco barcoEn(int indice) throws BattleException {
+        if (indice < 0 || indice >= barcos.size())
+            throw new BattleException("Barco seleccionado inválido");
+        return barcos.get(indice);
+    }
+
+    public void remover(Barco b) {
+        barcos.remove(b);
     }
 
 }

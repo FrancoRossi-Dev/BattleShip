@@ -49,11 +49,64 @@ public class Batalla {
         
         this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
 
-        jugadorMaquina.desplegarAleatorio(flota);
-
         validar();
+
+        jugadorMaquina.desplegarAleatorio(flota);
     }
 
+    protected void cambiarEstado(EstadoTipo tipo) throws BattleException {
+        this.estado = EstadoFactory.crearEstadoBatalla(tipo, this);
+    }
+
+
+    // Preparación
+    public void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
+        estado.desplegarBarco(posBarco, coorX, coorY, orientacion);
+    }
+
+    public boolean flotaDesplegada() {
+        return pendienteAsignar.getBarcos().isEmpty();
+    }
+
+    public void librarBatalla() throws BattleException {
+        estado.librarBatalla();
+    }
+
+    // En combate
+    public void jugarRonda(int coorX, int coorY) throws BattleException {
+        estado.jugarRonda(coorX, coorY);
+    }
+
+    protected Disparo turnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
+        return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
+    }
+
+    protected Disparo turnoMaquina(Ronda r) throws BattleException {
+        return r.turnoMaquina(jugadorMaquina, jugadorHumano);
+    }
+    
+    public boolean flotaMaquinaHundida() {
+        return jugadorMaquina.flotaHundida();
+    }
+
+    public boolean flotaHumanaHundida() {
+        return jugadorHumano.flotaHundida();
+    }
+
+    protected void agregarRonda(Ronda r) {
+        rondas.add(r);
+    }
+
+    // finalizada
+    public boolean isGanada() {
+        return estado.getNombre().equals(EstadoFinalizada.GANADA);
+    }
+
+    public boolean isPerdida() {
+        return estado.getNombre().equals(EstadoFinalizada.PERDIDA);
+    }
+
+    // utilidades
     private void validar() throws BattleException {
         validarLado(this.ancho, "horizontales");
         validarLado(this.alto, "verticales");
@@ -80,63 +133,6 @@ public class Batalla {
             aleatorio += (char) ('A' + (int) (Math.random() * 26));
         }
         return aleatorio;
-    }
-
-    public void cambiarEstado(EstadoTipo tipo) throws BattleException {
-        this.estado = EstadoFactory.crearEstadoBatalla(tipo, this);
-    }
-
-    public boolean isGanada() {
-        return estado.getResultado().equals(EstadoFinalizada.VICTORIA);
-    }
-
-    public boolean isPerdida() {
-        return estado.getResultado().equals(EstadoFinalizada.DERROTA);
-    }
-
-    // operaciones dependientes del estado: se delegan
-    public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
-        estado.desplegarBarco(coorX, coorY, orientacion);
-    }
-
-    public void librarBatalla() throws BattleException {
-        estado.librarBatalla();
-    }
-
-    public void jugarRonda(int coorX, int coorY) throws BattleException {
-        estado.jugarRonda(coorX, coorY);
-    }
-
-    // trabajo real, invocado por los estados
-    protected void hacerDesplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
-        if (flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
-        TipoBarco tb = pendienteAsignar.getBarcos().get(0).getTipo();
-        jugadorHumano.desplegarBarco(tb, coorX, coorY, orientacion);
-        pendienteAsignar.remover(tb);
-    }
-
-    protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
-        return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
-    }
-
-    protected Disparo hacerTurnoMaquina(Ronda r) throws BattleException {
-        return r.turnoMaquina(jugadorMaquina, jugadorHumano);
-    }
-
-    protected void agregarRonda(Ronda r) {
-        rondas.add(r);
-    }
-
-    public boolean flotaDesplegada() {
-        return pendienteAsignar.getBarcos().isEmpty();
-    }
-
-    public boolean flotaMaquinaHundida() {
-        return jugadorMaquina.flotaHundida();
-    }
-
-    public boolean flotaHumanaHundida() {
-        return jugadorHumano.flotaHundida();
     }
 
     public String getNombreEstado() {

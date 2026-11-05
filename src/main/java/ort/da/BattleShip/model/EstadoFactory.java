@@ -10,9 +10,9 @@ public class EstadoFactory {
             case "EN_COMBATE":
                 return new EstadoEnCombate(batalla);
             case "FINALIZADA_VICTORIA":
-                return new EstadoFinalizada(batalla, EstadoFinalizada.VICTORIA);
+                return new EstadoFinalizada(batalla, EstadoFinalizada.GANADA);
             case "FINALIZADA_DERROTA":
-                return new EstadoFinalizada(batalla, EstadoFinalizada.DERROTA);
+                return new EstadoFinalizada(batalla, EstadoFinalizada.PERDIDA);
             default:
                 return new EstadoPreparacion(batalla);
         }

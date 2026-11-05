@@ -149,11 +149,12 @@ public class CU02PrepararNuevaBatallaPresenter {
 
     @PostMapping("/desplegarFlota")
     public Commands desplegarFlota(
+            @RequestParam(defaultValue = "0") int indiceBarco,
             @RequestParam int coorX,
             @RequestParam int coorY,
             @RequestParam String orientacion) throws BattleException {
 
-        batallaEnPreparacion().desplegarBarco(coorX, coorY, orientacion);
+        batallaEnPreparacion().desplegarBarco(indiceBarco, coorX, coorY, orientacion);
 
         if (batalla.flotaDesplegada())
             return Commands.create(batallaPreparada());

@@ -11,14 +11,15 @@ public class EstadoPreparacion extends EstadoBatalla {
         return "En preparación";
     }
 
-    @Override
-    public String getResultado() {
-        return "En curso";
-    }
 
     @Override
-    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
-        getBatalla().hacerDesplegarBarco(coorX, coorY, orientacion);
+    protected void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
+        Batalla b = getBatalla();
+        if (b.flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
+        
+        Barco seleccionado = b.getPendienteAsignar().barcoEn(posBarco);
+        b.getJugadorHumano().desplegarBarco(seleccionado.getTipo(), coorX, coorY, orientacion);
+        b.getPendienteAsignar().remover(seleccionado);
     }
 
     @Override
