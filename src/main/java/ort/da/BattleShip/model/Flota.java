@@ -20,6 +20,13 @@ public class Flota {
         if (barcos.isEmpty()) throw new BattleException("La flota debe tener al menos un barco");
     }
 
+    // metodo para copia superficial
+    public Flota(Flota otraFlota) {
+        for(Barco b : otraFlota.getBarcos()) {
+            this.barcos.add(b);
+        }
+    }
+
     private void agregar(TipoBarco tipo, int cantidad) throws BattleException {
         if (cantidad < 0 || cantidad > MAX_POR_TIPO)
             throw new BattleException("La cantidad de " + tipo.getNombre() + " debe estar entre 0 y " + MAX_POR_TIPO);

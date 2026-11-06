@@ -12,10 +12,6 @@ public class Batalla {
     @Getter
     private EstadoBatalla estado;
 
-    // mover al estado
-    @Getter
-    private Flota pendienteAsignar;
-
     @Getter
     private Flota flota;
 
@@ -43,7 +39,6 @@ public class Batalla {
         this.ancho = ancho;
         this.alto = alto;
         this.lugar = lugarOAleatorio(lugar);
-        this.pendienteAsignar = new Flota(tipos, cantidades);
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
         
@@ -64,9 +59,6 @@ public class Batalla {
         estado.desplegarBarco(posBarco, coorX, coorY, orientacion);
     }
 
-    public boolean flotaDesplegada() {
-        return pendienteAsignar.getBarcos().isEmpty();
-    }
 
     public void librarBatalla() throws BattleException {
         estado.librarBatalla();
@@ -77,6 +69,7 @@ public class Batalla {
         estado.jugarRonda(coorX, coorY);
     }
 
+    // la batalla ejecuta los turnos por experto, el estado los llama.
     protected Disparo turnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
         return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
     }
