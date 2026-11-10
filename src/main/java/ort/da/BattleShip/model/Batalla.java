@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import ort.da.BattleShip.observador.Observable;
 
-public class Batalla {
+public class Batalla extends Observable {
 
     @Getter
     private String lugar;

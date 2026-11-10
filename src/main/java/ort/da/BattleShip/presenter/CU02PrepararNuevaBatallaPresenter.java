@@ -156,6 +156,7 @@ public class CU02PrepararNuevaBatallaPresenter {
 
         batallaEnPreparacion().desplegarBarco(indiceBarco, coorX, coorY, orientacion);
 
+        // esto pasa por observador
         if (batalla.flotaDesplegada())
             return Commands.create(batallaPreparada());
         return Commands.create(actualizarTablero());
