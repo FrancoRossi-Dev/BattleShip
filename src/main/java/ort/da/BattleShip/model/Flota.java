@@ -10,10 +10,37 @@ public class Flota {
     @Getter
     private List<Barco> barcos = new ArrayList<>();
 
-    public Flota(List<TipoBarco> composicion) {
-        for (TipoBarco tipo : composicion) {
-            barcos.add(new Barco(tipo));
+    private static final int MAX_POR_TIPO = 6;
+
+    public Flota(List<TipoBarco> tipos, int[] cantidades) throws BattleException {
+        if (cantidades.length != tipos.size()) throw new BattleException("Configuración de flota inválida");
+        for (int i = 0; i < tipos.size(); i++) {
+            agregar(tipos.get(i), cantidades[i]);
         }
+        if (barcos.isEmpty()) throw new BattleException("La flota debe tener al menos un barco");
+    }
+
+    // metodo para copia superficial
+    public Flota(Flota otraFlota) {
+        for(Barco b : otraFlota.getBarcos()) {
+            this.barcos.add(b);
+        }
+    }
+
+    private void agregar(TipoBarco tipo, int cantidad) throws BattleException {
+        if (cantidad < 0 || cantidad > MAX_POR_TIPO)
+            throw new BattleException("La cantidad de " + tipo.getNombre() + " debe estar entre 0 y " + MAX_POR_TIPO);
+        for (int i = 0; i < cantidad; i++) {
+            agregarOrdenado(new Barco(tipo));
+        }
+    }
+
+    private void agregarOrdenado(Barco nuevo) {
+        int pos = 0;
+        while (pos < barcos.size() && barcos.get(pos).getTamano() >= nuevo.getTamano()) {
+            pos++;
+        }
+        barcos.add(pos, nuevo);
     }
 
     public int tamanoTotal() {
@@ -23,4 +50,15 @@ public class Flota {
         }
         return total;
     }
+
+    public Barco barcoEn(int indice) throws BattleException {
+        if (indice < 0 || indice >= barcos.size())
+            throw new BattleException("Barco seleccionado inválido");
+        return barcos.get(indice);
+    }
+
+    public void remover(Barco b) {
+        barcos.remove(b);
+    }
+
 }

@@ -1,5 +1,6 @@
 package ort.da.BattleShip.presenter;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 // CU03: LIBRAR BATALLA 
 @RestController
 @RequestMapping("/librarBatalla")
+@Scope("session")
 public class CU03LibrarBatallaPresenter {
     private Facade f;
     private Batalla batallaActual;
@@ -67,6 +69,7 @@ public class CU03LibrarBatallaPresenter {
     2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
  
     */
+   
     @PostMapping("/disparar")
     public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
         batallaActual.jugarRonda(CoorX, CoorY);

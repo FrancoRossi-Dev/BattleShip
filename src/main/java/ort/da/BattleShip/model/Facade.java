@@ -20,6 +20,11 @@ public class Facade {
         return instancia;
     }
 
+    // Sistema Batalla
+    public Batalla getBatalla(int idBatalla) throws BattleException {
+        return sistemaBatalla.getBatalla(idBatalla);
+    }
+
     public void agregar(Batalla batalla) throws BattleException {
         sistemaBatalla.agregar(batalla);
     }
@@ -40,6 +45,7 @@ public class Facade {
         return sistemaBatalla.porcentajeExito();
     }
 
+    // Sistema Barcos
     public void agregar(TipoBarco tipo) {
         sistemaBarcos.agregar(tipo);
     }
@@ -48,6 +54,7 @@ public class Facade {
         return sistemaBarcos.getTiposBarco();
     }
 
+    // Sistema tácticas
     public void agregar(TacticaTipo tactica) {
         sistemaTacticas.agregar(tactica);
     }
@@ -61,7 +68,5 @@ public class Facade {
         throw new UnsupportedOperationException("Unimplemented method 'GetCelda'");
     }
 
-    public Batalla getBatalla(int idBatalla) throws BattleException {
-        return sistemaBatalla.getBatalla(idBatalla);
-    }
+
 }

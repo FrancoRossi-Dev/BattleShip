@@ -16,7 +16,19 @@ public abstract class Jugador {
     }
 
 
+    public boolean flotaHundida() {
+        return oceano.flotaHundida();
+    }
+
     public Disparo recibirDisparo(Celda o) throws BattleException {
         return oceano.recibirDisparo(o);
     };
+
+    public void desplegarBarco(TipoBarco b, int coorX, int coorY, String orientacion) throws BattleException {
+        oceano.desplegarBarco(b, coorX, coorY, orientacion);
+    }
+
+    protected void vaciarOceano() {
+        oceano = new Oceano(oceano.getAncho(), oceano.getAlto());
+    }
 }
