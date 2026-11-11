@@ -1,17 +1,23 @@
 package ort.da.BattleShip.presenter;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ort.da.BattleShip.dto.TotalBatallasDto;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.Facade;
+import ort.da.BattleShip.observador.ConexionNavegador;
+import ort.da.BattleShip.observador.Observable;
 
 import java.util.List;
 
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 
 @RestController
@@ -22,10 +28,27 @@ public class CU01SalaOperacionesPresenter {
     private Facade f;
     private List<Batalla> batallas;
 
-    public CU01SalaOperacionesPresenter (Facade facade) {
+
+    private ConexionNavegador conexionNavergador;
+
+    public CU01SalaOperacionesPresenter (Facade facade, ConexionNavegador conexion) {
         this.f = facade;
+        this.conexionNavergador = conexion;
     }
 
+    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter completar() 
+    {
+        conexionNavergador.conectarSSE();
+        return consxionNavegador.getConexionSSE();
+    }
+    
+    @Override 
+    public void actualizar(Observable origen, Object evento) {
+        if (true) {
+            conexionNavergador.enviarJson(Commands.create("lo que me pinte"))
+        }
+    }
 
     @PostMapping("vistaConectada")
     public Commands vistaConectada() {

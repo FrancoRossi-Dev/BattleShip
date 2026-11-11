@@ -2,7 +2,10 @@ package ort.da.BattleShip.model;
 
 import java.util.List;
 
-public class Facade {
+import ort.da.BattleShip.observador.Observable;
+import ort.da.BattleShip.observador.Observador;
+
+public class Facade extends Observable implements Observador {
 
     private static Facade instancia;
 
@@ -66,6 +69,12 @@ public class Facade {
     public Celda GetCelda(int coorX, int coorY) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'GetCelda'");
+    }
+
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        // Esto es un rele, toma un evento y si aplica, lo transforma a un eveto propio identico y avisa
+        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
     }
 
 
