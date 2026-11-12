@@ -31,7 +31,8 @@ public class Batalla extends Observable {
     public enum events {
         CAMBIO_ESTADO,
         FLOTA_UNDIDA,
-        BARCO_DESPLEGADO, RONDA_FINALIZADA, 
+        BARCO_DESPLEGADO, 
+        RONDA_FINALIZADA, 
     }
 
     public Batalla(
@@ -73,13 +74,11 @@ public class Batalla extends Observable {
         estado.librarBatalla();
     }
 
-    // En combate
     public void jugarRonda(int coorX, int coorY) throws BattleException {
         estado.jugarRonda(coorX, coorY);
     }
 
-    // Experto: la batalla tiene los jugadores y las rondas. El estado decide la transición.
-    // La ronda es atómica: un único aviso, siempre antes de un eventual CAMBIO_ESTADO.
+    // llamado dsde el estado
     protected void hacerJugarRonda(int coorX, int coorY) throws BattleException {
         Ronda r = new Ronda();
 
