@@ -13,6 +13,10 @@ public class Facade extends Observable implements Observador {
     private final SistemaBarcos sistemaBarcos = new SistemaBarcos();
     private final SistemaTacticas sistemaTacticas = new SistemaTacticas();
 
+    public enum events {
+        ACTUALIZACION_DE_LISTA; // la fachada se subscribe a todas las batallas y cuando una de ellas cambia, delega el aviso al presentador
+    }
+
     private Facade() {
     }
 

@@ -28,6 +28,12 @@ public class Batalla extends Observable {
     private static final int MIN_LADO = 6;
     private static final int MAX_LADO = 12;
 
+    public enum events {
+        CAMBIO_ESTADO,
+        FLOTA_UNDIDA,
+        BARCO_DESPLEGADO, RONDA_FINALIZADA, 
+    }
+
     public Batalla(
         String lugar, 
         TacticaTipo tactica, 
@@ -52,12 +58,14 @@ public class Batalla extends Observable {
 
     protected void cambiarEstado(EstadoTipo tipo) throws BattleException {
         this.estado = EstadoFactory.crearEstadoBatalla(tipo, this);
+        avisar(Batalla.events.CAMBIO_ESTADO);
     }
 
 
     // Preparación
     public void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
         estado.desplegarBarco(posBarco, coorX, coorY, orientacion);
+        avisar(Batalla.events.BARCO_DESPLEGADO);
     }
 
 
@@ -70,6 +78,22 @@ public class Batalla extends Observable {
         estado.jugarRonda(coorX, coorY);
     }
 
+    // Experto: la batalla tiene los jugadores y las rondas. El estado decide la transición.
+    // La ronda es atómica: un único aviso, siempre antes de un eventual CAMBIO_ESTADO.
+    protected void hacerJugarRonda(int coorX, int coorY) throws BattleException {
+        Ronda r = new Ronda();
+
+        turnoHumano(r, coorX, coorY);
+        if (!flotaMaquinaHundida()) {
+            turnoMaquina(r);
+        }
+        agregarRonda(r);
+        avisar(Batalla.events.RONDA_FINALIZADA);
+    }
+
+    public boolean flotaDesplegada() {
+        return estado.flotaDesplegada();
+    }
     // la batalla ejecuta los turnos por experto, el estado los llama.
     protected Disparo turnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
         return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));

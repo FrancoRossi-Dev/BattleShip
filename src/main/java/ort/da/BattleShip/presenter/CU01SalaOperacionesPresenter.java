@@ -8,6 +8,7 @@ import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.Facade;
 import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
+import ort.da.BattleShip.observador.Observador;
 
 import java.util.List;
 
@@ -17,47 +18,54 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
 @RestController
 @RequestMapping("/SalaOperaciones")
 @Scope("session")
-public class CU01SalaOperacionesPresenter {
+public class CU01SalaOperacionesPresenter implements Observador {
 
     private Facade f;
     private List<Batalla> batallas;
 
 
-    private ConexionNavegador conexionNavergador;
+    private ConexionNavegador conexionNavegador;
 
     public CU01SalaOperacionesPresenter (Facade facade, ConexionNavegador conexion) {
         this.f = facade;
-        this.conexionNavergador = conexion;
+        this.conexionNavegador = conexion;
     }
 
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter completar() 
     {
-        conexionNavergador.conectarSSE();
-        return consxionNavegador.getConexionSSE();
+        conexionNavegador.conectarSSE();
+        return conexionNavegador.getConexionSSE();
     }
     
     @Override 
     public void actualizar(Observable origen, Object evento) {
-        if (true) {
-            conexionNavergador.enviarJson(Commands.create("lo que me pinte"))
+        // eventos: 
+        // 
+        if (Facade.events.ACTUALIZACION_DE_LISTA.equals(evento)) {
+            this.batallas = f.getBatallas();
+            conexionNavegador.enviarJSON(Commands.create(listaBatallas()));
+
         }
     }
 
-    @PostMapping("vistaConectada")
+    @PostMapping("/vistaConectada")
     public Commands vistaConectada() {
         batallas = f.getBatallas();
-        return Commands.create(historialBatallas());
+        f.agregarObservador(this);
+        return Commands.create(listaBatallas());
     }
 
 
-    @PostMapping("nuevaBatalla")
+    @PostMapping("/nuevaBatalla")
     public Commands nuevaBatalla() {
         
         return Commands.create(CommonCommands.Redirection("nuevaBatalla.html"));
@@ -65,15 +73,21 @@ public class CU01SalaOperacionesPresenter {
     
 
 
-    @PostMapping("reanudarBatalla")
+    @PostMapping("/reanudarBatalla")
     public Commands reanudarBatalla(@RequestParam String BatallaId) {
         
         return null;
     }
     
+    @PostMapping("/desconectarVista")
+    public void desconectarVista() {
+        f.quitarObservador(this);
+    }
+    
 
-    private Command historialBatallas() {
-        return new Command("historialBatallas", new TotalBatallasDto(batallas,
+    // COMMANDS
+    private Command listaBatallas() {
+        return new Command("listaBatallas", new TotalBatallasDto(batallas,
                 f.cantidadGanadas(), f.cantidadPerdidas(), f.porcentajeExito()));
     }
     

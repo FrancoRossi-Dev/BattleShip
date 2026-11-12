@@ -30,8 +30,13 @@ public class EstadoPreparacion extends EstadoBatalla {
     }
 
     @Override
+    protected boolean flotaDesplegada() {
+        return pendienteAsignar.getBarcos().isEmpty();
+    }
+
+    @Override
     protected void librarBatalla() throws BattleException {
-        if (!pendienteAsignar.getBarcos().isEmpty())
+        if (!flotaDesplegada())
             throw new BattleException("Debe posicionar todos sus barcos primero");
         getBatalla().cambiarEstado(EstadoTipo.EN_COMBATE);
     }
