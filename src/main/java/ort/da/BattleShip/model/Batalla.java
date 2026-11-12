@@ -82,9 +82,9 @@ public class Batalla extends Observable {
     protected void hacerJugarRonda(int coorX, int coorY) throws BattleException {
         Ronda r = new Ronda();
 
-        turnoHumano(r, coorX, coorY);
+        hacerTurnoHumano(r, coorX, coorY);
         if (!flotaMaquinaHundida()) {
-            turnoMaquina(r);
+            hacerTurnoMaquina(r);
         }
         agregarRonda(r);
         avisar(Batalla.events.RONDA_FINALIZADA);
@@ -93,14 +93,16 @@ public class Batalla extends Observable {
     public boolean flotaDesplegada() {
         return estado.flotaDesplegada();
     }
+
     // la batalla ejecuta los turnos por experto, el estado los llama.
-    protected Disparo turnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
+    protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
         return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
     }
 
-    protected Disparo turnoMaquina(Ronda r) throws BattleException {
+    protected Disparo hacerTurnoMaquina(Ronda r) throws BattleException {
         return r.turnoMaquina(jugadorMaquina, jugadorHumano);
     }
+    
     
     public boolean flotaMaquinaHundida() {
         return jugadorMaquina.flotaHundida();
