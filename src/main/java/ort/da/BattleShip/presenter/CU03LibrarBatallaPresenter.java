@@ -9,6 +9,9 @@ import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Celda;
 import ort.da.BattleShip.model.Facade;
+import ort.da.BattleShip.observador.Observable;
+import ort.da.BattleShip.observador.Observador;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -17,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @RequestMapping("/librarBatalla")
 @Scope("session")
-public class CU03LibrarBatallaPresenter {
+public class CU03LibrarBatallaPresenter implements Observador {
     private Facade f;
     private Batalla batallaActual;
 
@@ -182,6 +185,12 @@ Flujos alternativos
     private Command juegoFinalizado() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'juegoFinalizado'");
+    }
+
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
     }
 
 }

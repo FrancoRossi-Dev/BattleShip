@@ -14,17 +14,11 @@ public class EstadoEnCombate extends EstadoBatalla {
     @Override
     protected void jugarRonda(int coorX, int coorY) throws BattleException {
         Batalla b = getBatalla();
-        Ronda r = new Ronda();
+        b.hacerJugarRonda(coorX, coorY);
 
-        b.turnoHumano(r, coorX, coorY);
-        b.agregarRonda(r);
         if (b.flotaMaquinaHundida()) {
             b.cambiarEstado(EstadoTipo.FINALIZADA_VICTORIA);
-            return;
-        }
-
-        b.turnoMaquina(r);
-        if (b.flotaHumanaHundida()) {
+        } else if (b.flotaHumanaHundida()) {
             b.cambiarEstado(EstadoTipo.FINALIZADA_DERROTA);
         }
     }

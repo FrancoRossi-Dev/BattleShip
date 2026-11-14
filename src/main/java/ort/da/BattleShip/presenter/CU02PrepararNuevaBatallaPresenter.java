@@ -11,6 +11,8 @@ import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Facade;
 import ort.da.BattleShip.model.TacticaTipo;
 import ort.da.BattleShip.model.TipoBarco;
+import ort.da.BattleShip.observador.Observable;
+import ort.da.BattleShip.observador.Observador;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/nuevaBatalla")
 @Scope("session")
-public class CU02PrepararNuevaBatallaPresenter {
+public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     private Facade f;
     private List<TacticaTipo> listaDeTacticas = new ArrayList<>();
@@ -252,5 +254,11 @@ public class CU02PrepararNuevaBatallaPresenter {
     private Command batallaPreparada() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'batallaPreparada'");
+    }
+
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
     }
 }

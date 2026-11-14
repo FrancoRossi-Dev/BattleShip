@@ -13,6 +13,10 @@ public class Facade extends Observable implements Observador {
     private final SistemaBarcos sistemaBarcos = new SistemaBarcos();
     private final SistemaTacticas sistemaTacticas = new SistemaTacticas();
 
+    public enum events {
+        ACTUALIZACION_DE_LISTA;
+    }
+
     private Facade() {
     }
 
@@ -30,6 +34,7 @@ public class Facade extends Observable implements Observador {
 
     public void agregar(Batalla batalla) throws BattleException {
         sistemaBatalla.agregar(batalla);
+        batalla.agregarObservador(this);
     }
 
     public List<Batalla> getBatallas() {
@@ -66,15 +71,12 @@ public class Facade extends Observable implements Observador {
         return sistemaTacticas.getTiposDeTacticas();
     }
 
-    public Celda GetCelda(int coorX, int coorY) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'GetCelda'");
-    }
-
     @Override
     public void actualizar(Observable origen, Object evento) {
-        // Esto es un rele, toma un evento y si aplica, lo transforma a un eveto propio identico y avisa
-        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
+        if(evento.equals(Batalla.events.CAMBIO_ESTADO)) {}
+        if(evento.equals(Batalla.events.FLOTA_UNDIDA)) {}
+        if(evento.equals(Batalla.events.BARCO_DESPLEGADO)) {}
+        if(evento.equals(Batalla.events.RONDA_FINALIZADA)) {}
     }
 
 

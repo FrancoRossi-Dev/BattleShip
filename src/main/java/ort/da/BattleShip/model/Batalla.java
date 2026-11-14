@@ -28,6 +28,13 @@ public class Batalla extends Observable {
     private static final int MIN_LADO = 6;
     private static final int MAX_LADO = 12;
 
+    public enum events {
+        CAMBIO_ESTADO,
+        FLOTA_UNDIDA,
+        BARCO_DESPLEGADO, 
+        RONDA_FINALIZADA, 
+    }
+
     public Batalla(
         String lugar, 
         TacticaTipo tactica, 
@@ -52,12 +59,14 @@ public class Batalla extends Observable {
 
     protected void cambiarEstado(EstadoTipo tipo) throws BattleException {
         this.estado = EstadoFactory.crearEstadoBatalla(tipo, this);
+        avisar(Batalla.events.CAMBIO_ESTADO);
     }
 
 
     // Preparación
     public void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
         estado.desplegarBarco(posBarco, coorX, coorY, orientacion);
+        avisar(Batalla.events.BARCO_DESPLEGADO);
     }
 
 
@@ -65,19 +74,35 @@ public class Batalla extends Observable {
         estado.librarBatalla();
     }
 
-    // En combate
     public void jugarRonda(int coorX, int coorY) throws BattleException {
         estado.jugarRonda(coorX, coorY);
     }
 
+    // llamado dsde el estado
+    protected void hacerJugarRonda(int coorX, int coorY) throws BattleException {
+        Ronda r = new Ronda();
+
+        hacerTurnoHumano(r, coorX, coorY);
+        if (!flotaMaquinaHundida()) {
+            hacerTurnoMaquina(r);
+        }
+        agregarRonda(r);
+        avisar(Batalla.events.RONDA_FINALIZADA);
+    }
+
+    public boolean flotaDesplegada() {
+        return estado.flotaDesplegada();
+    }
+
     // la batalla ejecuta los turnos por experto, el estado los llama.
-    protected Disparo turnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
+    protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
         return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
     }
 
-    protected Disparo turnoMaquina(Ronda r) throws BattleException {
+    protected Disparo hacerTurnoMaquina(Ronda r) throws BattleException {
         return r.turnoMaquina(jugadorMaquina, jugadorHumano);
     }
+    
     
     public boolean flotaMaquinaHundida() {
         return jugadorMaquina.flotaHundida();
