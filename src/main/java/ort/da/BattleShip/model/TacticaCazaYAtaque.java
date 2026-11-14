@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TacticaCazaYAtaque implements TacticaInterfaz {
+    // implementar strategy aca - cambio dinanmico
 
     private static final int[][] HORIZONTAL = {{0, 1}, {0, -1}};
     private static final int[][] VERTICAL = {{1, 0}, {-1, 0}};
