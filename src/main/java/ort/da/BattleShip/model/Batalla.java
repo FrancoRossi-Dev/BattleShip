@@ -157,4 +157,8 @@ public class Batalla extends Observable {
     public String getNombreEstado() {
         return estado.getClass().getSimpleName();
     }
+
+    public boolean esFinalizada() {
+        return this.estado.esFinalizada();
+    }
 }

@@ -34,4 +34,14 @@ public class EstadoEnCombate extends EstadoBatalla {
         throw new BattleException("La batalla ya comenzó");
     }
 
+    @Override
+    protected boolean flotaDesplegada() {
+        return true;
+    }
+
+    @Override
+    protected boolean esFinalizada() {
+        return false;
+    }
+
 }

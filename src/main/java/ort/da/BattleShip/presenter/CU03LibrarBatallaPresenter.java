@@ -45,9 +45,11 @@ public class CU03LibrarBatallaPresenter implements Observador {
 
     - Un botón “Volver a la sala de operaciones” 
     */
-    @PostMapping("vistaConectada")
+    @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam int idBatalla) throws BattleException {
         batallaActual = f.getBatalla(idBatalla);
+
+        batallaActual.agregarObservador(this);
         
         return Commands.create(MostrarEstadisticaBatalla(), HabilitarJuego());
     }
@@ -73,10 +75,10 @@ public class CU03LibrarBatallaPresenter implements Observador {
  
     */
    
-    @PostMapping("/disparar")
-    public Commands disparar(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
+    @PostMapping("/jugarRonda")
+    public Commands jugarRonda(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
         batallaActual.jugarRonda(CoorX, CoorY);
-        if (batallaActual.isGanada() || batallaActual.isPerdida()) {
+        if (batallaActual.esFinalizada()) {
             return Commands.create(juegoFinalizado(), actualizarTablero());
         }
         return Commands.create(actualizarTablero());

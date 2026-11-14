@@ -68,6 +68,10 @@ El tablero, al hacer clic, envía `{coordenadaVertical, coordenadaHorizontal}` a
 - [ ] `EstadoBatalla.resultado` duplicado/ocultado por `EstadoFinalizada.resultado`
 - [ ] "Entrar" (CU01 → CU02 o CU03): usar un booleano polimórfico del estado (`enPreparacion()`), no comparar nombres
 - [ ] `BatallaDto`: agregar id (índice) para que "Entrar" sepa a qué batalla ir
+- [ ] **Dividir `TacticaCazaYAtaque` en 2 estrategias (patrón Strategy, cambio dinámico)**
+  - [ ] Una estrategia de **caza** (buscar barcos) y otra de **ataque** (rematar alrededor de los impactos sin hundir)
+  - [ ] `TacticaCazaYAtaque` queda como contexto: tiene la estrategia actual y la cambia en tiempo de ejecución (impacto → ataque; barco hundido/sin impactos pendientes → caza)
+  - [ ] Sin `if`/flags para elegir el modo: cada estrategia decide a cuál pasar
 
 ## 7. Precarga (`DatosPrueba`)
 

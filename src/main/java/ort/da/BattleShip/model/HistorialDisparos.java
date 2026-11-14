@@ -42,4 +42,25 @@ public class HistorialDisparos {
         }
         return false;
     }
+
+    // resta el océano completo menos las celdas ya disparadas
+    public List<Celda> celdasLibres() {
+        // 1. matriz de marcas: true donde ya se disparó (una sola pasada por los disparos)
+        boolean[][] disparadas = new boolean[alto][ancho];
+        for (Disparo d : disparos) {
+            Celda c = d.getCelda();
+            disparadas[c.getFila()][c.getColumna()] = true;
+        }
+
+        // 2. se recorre el océano completo y se guardan las celdas sin marca
+        // se crean celdas nuevas (sin barco) para no exponer el océano enemigo
+        List<Celda> libres = new ArrayList<>();
+        for (int fila = 0; fila < alto; fila++) {
+            for (int columna = 0; columna < ancho; columna++) {
+                if (!disparadas[fila][columna]) libres.add(new Celda(fila, columna));
+            }
+        }
+        return libres;
+    }
+
 }

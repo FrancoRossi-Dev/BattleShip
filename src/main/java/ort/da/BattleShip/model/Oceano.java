@@ -16,7 +16,9 @@ public class Oceano {
 
     // evaluar si es necesario, es lo que permite que varias 
     // celdas apunten a una misma entidad y se pueda recorrer luego
-    private List<Barco> barcos = new ArrayList<Barco>();
+    private List<Barco> barcosVivos = new ArrayList<Barco>();
+    // se crea esta lista para llevar un listado de los barcos hundidos y su orden
+    private List<Barco> barcosHundidos = new ArrayList<>();
 
     private int impactos = 0;
 
@@ -36,10 +38,15 @@ public class Oceano {
     }
 
     public boolean flotaHundida() {
-        for (Barco b : barcos) {
-            if (b.isVivo()) return false;
-        }
-        return !barcos.isEmpty();
+        return barcosVivos.isEmpty();
+    }
+
+    public List<Barco> getBarcos() {
+        List<Barco> bList = new ArrayList<>();
+        // concatena ambas listas
+        for(Barco b : barcosVivos) bList.add(b);
+        for(Barco b : barcosHundidos) bList.add(b);
+        return bList;
     }
 
     public Celda getCelda(int coorX, int coorY) throws BattleException {
@@ -95,7 +102,7 @@ public class Oceano {
             c.setBarco(b);
             b.addCelda(c);
         }
-        this.barcos.add(b);
+        this.barcosVivos.add(b);
     }
 
     private void validarAdjacentes(Celda celda) throws BattleException {

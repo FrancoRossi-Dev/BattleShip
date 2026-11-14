@@ -21,9 +21,8 @@ public abstract class EstadoBatalla {
 
     protected abstract void jugarRonda(int coorX, int coorY) throws BattleException;
 
-    // fuera de preparación la flota humana ya está desplegada
-    protected boolean flotaDesplegada() {
-        return true;
-    }
+    protected abstract boolean flotaDesplegada();
+
+    protected abstract boolean esFinalizada();
 
 }

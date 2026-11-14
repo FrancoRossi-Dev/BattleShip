@@ -58,6 +58,8 @@ public class JugadorMaquina extends Jugador {
     public void agregarAlHistorial(Disparo d) throws BattleException {
         if (d == null) throw new BattleException("Disparo invalido");
         historial.agregar(d);
+        // strategy: la tactica actual indica cual usar en el proximo turno
+        tactica = tactica.siguienteTactica(d);
     }
 
 }

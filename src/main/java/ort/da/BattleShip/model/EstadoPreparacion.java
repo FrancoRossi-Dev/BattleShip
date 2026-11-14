@@ -35,6 +35,11 @@ public class EstadoPreparacion extends EstadoBatalla {
     }
 
     @Override
+    protected boolean esFinalizada() {
+        return false;
+    }
+
+    @Override
     protected void librarBatalla() throws BattleException {
         if (!flotaDesplegada())
             throw new BattleException("Debe posicionar todos sus barcos primero");
