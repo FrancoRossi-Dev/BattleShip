@@ -18,10 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-
-
 
 @RestController
 @RequestMapping("/SalaOperaciones")
@@ -48,12 +44,9 @@ public class CU01SalaOperacionesPresenter implements Observador {
     
     @Override 
     public void actualizar(Observable origen, Object evento) {
-        // eventos: 
-        // 
         if (Facade.events.ACTUALIZACION_DE_LISTA.equals(evento)) {
             this.batallas = f.getBatallas();
             conexionNavegador.enviarJSON(Commands.create(listaBatallas()));
-
         }
     }
 
@@ -64,27 +57,22 @@ public class CU01SalaOperacionesPresenter implements Observador {
         return Commands.create(listaBatallas());
     }
 
-
     @PostMapping("/nuevaBatalla")
     public Commands nuevaBatalla() {
-        
+        // redirige al endpoint de CU02
         return Commands.create(CommonCommands.Redirection("nuevaBatalla.html"));
     }
     
-
-
     @PostMapping("/reanudarBatalla")
-    public Commands reanudarBatalla(@RequestParam String BatallaId) {
-        
-        return null;
+    public Commands reanudarBatalla(@RequestParam int idBatalla) {
+        return Commands.create(CommonCommands.Redirection("librarBatalla.html?idBatalla=" + idBatalla));
     }
     
-    @PostMapping("/desconectarVista")
-    public void desconectarVista() {
+    @PostMapping("/vistaDesconectada")
+    public void vistaDesconectada() {
         f.quitarObservador(this);
     }
     
-
     // COMMANDS
     private Command listaBatallas() {
         return new Command("listaBatallas", new TotalBatallasDto(batallas,
@@ -92,7 +80,6 @@ public class CU01SalaOperacionesPresenter implements Observador {
     }
     
     /*
-    
     CU01: SALA DE OPERACIONES 
     Esta la vista principal del juego. Este caso de uso puede ejecutarse múltiples veces en simultaneo en diferentes 
     sesiones/navegadores y siempre debe mostrar la misma información.  

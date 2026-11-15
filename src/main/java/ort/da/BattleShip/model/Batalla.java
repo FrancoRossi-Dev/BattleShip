@@ -30,7 +30,6 @@ public class Batalla extends Observable {
 
     public enum events {
         CAMBIO_ESTADO,
-        FLOTA_UNDIDA,
         BARCO_DESPLEGADO, 
         RONDA_FINALIZADA, 
     }
@@ -92,6 +91,14 @@ public class Batalla extends Observable {
 
     public boolean flotaDesplegada() {
         return estado.flotaDesplegada();
+    }
+
+    public Barco proximoBarco() {
+        return estado.proximoBarco();
+    }
+
+    public List<Celda> celdasPropias() {
+        return jugadorHumano.getCeldas();
     }
 
     // la batalla ejecuta los turnos por experto, el estado los llama.

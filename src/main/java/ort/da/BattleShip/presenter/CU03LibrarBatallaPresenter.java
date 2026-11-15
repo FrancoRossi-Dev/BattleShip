@@ -1,14 +1,18 @@
 package ort.da.BattleShip.presenter;
 
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Celda;
 import ort.da.BattleShip.model.Facade;
+import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
 import ort.da.BattleShip.observador.Observador;
 
@@ -24,8 +28,17 @@ public class CU03LibrarBatallaPresenter implements Observador {
     private Facade f;
     private Batalla batallaActual;
 
-    public CU03LibrarBatallaPresenter (Facade f) {
+    private ConexionNavegador conexionNavegador;
+
+    public CU03LibrarBatallaPresenter (Facade f, ConexionNavegador conexion) {
         this.f = f;
+        this.conexionNavegador = conexion;
+    }
+
+    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter registrarSSE() {
+        conexionNavegador.conectarSSE();
+        return conexionNavegador.getConexionSSE();
     }
 
     /*
@@ -47,11 +60,22 @@ public class CU03LibrarBatallaPresenter implements Observador {
     */
     @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam int idBatalla) throws BattleException {
+        // TODO evaluar: el presenter es de sesion, si se entra a otra batalla sin que llegue
+        // vistaDesconectada (urlCierre), la batalla anterior queda con este observador y sus
+        // eventos se mostrarian sobre batallaActual. Posible fix: quitar el observador de la
+        // batalla anterior antes de reasignar batallaActual.
         batallaActual = f.getBatalla(idBatalla);
 
         batallaActual.agregarObservador(this);
         
         return Commands.create(MostrarEstadisticaBatalla(), HabilitarJuego());
+    }
+
+    @PostMapping("/vistaDesconectada")
+    public void vistaDesconectada() {
+        if (batallaActual != null) {
+            batallaActual.quitarObservador(this);
+        }
     }
 
 

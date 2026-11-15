@@ -1,5 +1,7 @@
 package ort.da.BattleShip.model;
 
+import java.util.List;
+
 import lombok.Getter;
 
 public abstract class Jugador {
@@ -15,6 +17,10 @@ public abstract class Jugador {
         return flota.tamanoTotal() - oceano.partesImpactadas();
     }
 
+
+    public List<Celda> getCeldas() {
+        return oceano.getCeldas();
+    }
 
     public boolean flotaHundida() {
         return oceano.flotaHundida();

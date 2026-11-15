@@ -51,4 +51,11 @@ public class SistemaBatalla {
             throw new BattleException("Batalla desconocida");
         return batallas.get(pos);
     }
+
+    public int idDe(Batalla batalla) throws BattleException {
+        int pos = batallas.indexOf(batalla);
+        if (pos < 0)
+            throw new BattleException("Batalla desconocida");
+        return pos;
+    }
 }

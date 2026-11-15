@@ -33,6 +33,16 @@ public class Celda {
         return disparo;
     }
 
+    // la celda es experta en su propio contenido; mostrarBarcos=false oculta los barcos no impactados
+    public String valor(boolean mostrarBarcos) {
+        if (isDisparada()) {
+            if (barco != null) return "impacto";
+            return "agua";
+        }
+        if (barco != null && mostrarBarcos) return "barco";
+        return "nada";
+    }
+
     public void setBarco(Barco b) throws BattleException {
         if(this.barco != null) throw new BattleException("La celda ya está ocupada");
         this.barco = b;

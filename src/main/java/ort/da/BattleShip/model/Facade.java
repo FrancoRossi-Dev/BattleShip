@@ -32,6 +32,10 @@ public class Facade extends Observable implements Observador {
         return sistemaBatalla.getBatalla(idBatalla);
     }
 
+    public int idDe(Batalla batalla) throws BattleException {
+        return sistemaBatalla.idDe(batalla);
+    }
+
     public void agregar(Batalla batalla) throws BattleException {
         sistemaBatalla.agregar(batalla);
         batalla.agregarObservador(this);
@@ -73,10 +77,12 @@ public class Facade extends Observable implements Observador {
 
     @Override
     public void actualizar(Observable origen, Object evento) {
-        if(evento.equals(Batalla.events.CAMBIO_ESTADO)) {}
-        if(evento.equals(Batalla.events.FLOTA_UNDIDA)) {}
-        if(evento.equals(Batalla.events.BARCO_DESPLEGADO)) {}
-        if(evento.equals(Batalla.events.RONDA_FINALIZADA)) {}
+        if (evento.equals(Batalla.events.CAMBIO_ESTADO)) {
+            avisar(Facade.events.ACTUALIZACION_DE_LISTA);
+        }
+        if (evento.equals(Batalla.events.RONDA_FINALIZADA)) {
+            avisar(Facade.events.ACTUALIZACION_DE_LISTA);
+        }
     }
 
 

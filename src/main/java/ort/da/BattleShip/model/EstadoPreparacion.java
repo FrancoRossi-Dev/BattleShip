@@ -34,6 +34,13 @@ public class EstadoPreparacion extends EstadoBatalla {
         return pendienteAsignar.getBarcos().isEmpty();
     }
 
+    // la lista está ordenada de mayor a menor, el seleccionado es siempre el primero
+    @Override
+    protected Barco proximoBarco() {
+        if (flotaDesplegada()) return null;
+        return pendienteAsignar.getBarcos().get(0);
+    }
+
     @Override
     protected boolean esFinalizada() {
         return false;

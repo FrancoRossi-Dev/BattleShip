@@ -1,16 +1,23 @@
 package ort.da.BattleShip.presenter;
 
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import ort.da.BattleShip.dto.BatallaDto;
+import ort.da.BattleShip.dto.CeldaDto;
+import ort.da.BattleShip.dto.TableroDespliegueDto;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Facade;
 import ort.da.BattleShip.model.TacticaTipo;
 import ort.da.BattleShip.model.TipoBarco;
+import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
 import ort.da.BattleShip.observador.Observador;
 
@@ -27,9 +34,20 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
     private List<TacticaTipo> listaDeTacticas = new ArrayList<>();
     private List<TipoBarco> listaDeTiposDeBarco = new ArrayList<>();
     private Batalla batalla;
+    // la letra pide horizontal seleccionado por defecto
+    private String orientacion = "HORIZONTAL";
 
-    public CU02PrepararNuevaBatallaPresenter(Facade facade) {
+    private ConexionNavegador conexionNavegador;
+
+    public CU02PrepararNuevaBatallaPresenter(Facade facade, ConexionNavegador conexion) {
         this.f = facade;
+        this.conexionNavegador = conexion;
+    }
+
+    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter registrarSSE() {
+        conexionNavegador.conectarSSE();
+        return conexionNavegador.getConexionSSE();
     }
 
     /*
@@ -50,15 +68,18 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam(required = false) Integer idBatalla) throws BattleException {
+        // se cargan los desplegables para generar una nueva vista
         listaDeTacticas = f.getTacticas();
         listaDeTiposDeBarco = f.getTiposBarco();
 
+        // si el usuario no ingresa una id, se crea una nueva
         if (idBatalla == null) {
             batalla = null;
-            return Commands.create(habilitarFormulario());
+            return Commands.create(habilitarFormulario(true));
         }
+        // si ingresa una id al conectarse a este endpoint, se retoma el proceso de creción
         batalla = f.getBatalla(idBatalla);
-        return Commands.create(mostrarBatallaEnPreparacion());
+        return Commands.create(mostrarBatallaEnPreparacion(), HabilitarDesplegarFlota(true), leyendaAccion());
     }
     /*
      * 3. Ingresa los datos requeridos e indica la opción Continuar.
@@ -111,18 +132,23 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/crearBatalla")
     public Commands crearBatalla(
-            @RequestParam(required = false) String lugarCombate,
-            @RequestParam(required = false) Integer tacticaPos,
-            @RequestParam(required = false) Integer nroCeldasX,
-            @RequestParam(required = false) Integer nroCeldasY,
-            @RequestParam(required = false) Integer[] flotaConfig) throws BattleException {
+            @RequestParam String lugarCombate,
+            @RequestParam int tacticaPos,
+            @RequestParam int nroCeldasX,
+            @RequestParam int nroCeldasY,
+            @RequestParam int[] flotaConfig) throws BattleException {
 
-        Batalla nueva = new Batalla(lugarCombate, tacticaEn(requerido(tacticaPos, "la táctica")),
-                requerido(nroCeldasX, "las celdas horizontales"), requerido(nroCeldasY, "las celdas verticales"),
-                listaDeTiposDeBarco, cantidades(flotaConfig));
+        // crea batalla a partir de los argumentos
+        Batalla nueva = new Batalla(lugarCombate, tacticaEn(tacticaPos), nroCeldasX, nroCeldasY,
+                listaDeTiposDeBarco, flotaConfig);
+
+        // envía a la fachada para agregarla a la lista
         f.agregar(nueva);
+
+        // persistencia
         batalla = nueva;
-        return Commands.create(mostrarBatallaEnPreparacion());
+
+        return Commands.create(HabilitarDesplegarFlota(true), habilitarFormulario(false), leyendaAccion());
     }
 
     /*
@@ -149,6 +175,8 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
      * ubicar barcos en aguas enemigas”
      */
 
+
+
     @PostMapping("/desplegarFlota")
     public Commands desplegarFlota(
             @RequestParam(defaultValue = "0") int indiceBarco,
@@ -156,14 +184,17 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
             @RequestParam int coorY,
             @RequestParam String orientacion) throws BattleException {
 
-        batallaEnPreparacion().desplegarBarco(indiceBarco, coorX, coorY, orientacion);
+        if (batalla == null)
+            throw new BattleException("No hay una batalla en preparación");
 
-        // esto pasa por observador
-        if (batalla.flotaDesplegada())
-            return Commands.create(batallaPreparada());
-        return Commands.create(actualizarTablero());
+        batalla.desplegarBarco(indiceBarco, coorX, coorY, orientacion);
+        this.orientacion = orientacion;
+
+        // respuesta directa: el clic sale de esta misma vista
+        return Commands.create(actualizarTablero()).add(leyendaAccion());
     }
 
+    // verificar si es necesario
     @PostMapping("/aguasEnemigas")
     public Commands aguasEnemigas() throws BattleException {
         throw new BattleException("No puede ubicar barcos en aguas enemigas");
@@ -190,28 +221,11 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/librarBatalla")
     public Commands librarBatalla() throws BattleException {
-        batallaEnPreparacion().librarBatalla();
-        return Commands.create(CommonCommands.Redirection("librarBatalla.html"));
-    }
-
-    private Batalla batallaEnPreparacion() throws BattleException {
         if (batalla == null)
             throw new BattleException("No hay una batalla en preparación");
-        return batalla;
-    }
 
-    private int requerido(Integer valor, String campo) throws BattleException {
-        if (valor == null) throw new BattleException("Debe ingresar " + campo);
-        return valor;
-    }
-
-    private int[] cantidades(Integer[] flotaConfig) throws BattleException {
-        if (flotaConfig == null) throw new BattleException("Debe ingresar la cantidad de cada tipo de barco");
-        int[] cantidades = new int[flotaConfig.length];
-        for (int i = 0; i < flotaConfig.length; i++) {
-            cantidades[i] = requerido(flotaConfig[i], "la cantidad de cada tipo de barco");
-        }
-        return cantidades;
+        batalla.librarBatalla();
+        return Commands.create(CommonCommands.Redirection("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
     }
 
     private TacticaTipo tacticaEn(int pos) throws BattleException {
@@ -236,29 +250,41 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
      * El océano del enemigo es establecido con una distribución aleatoria, pero con las mismas reglas.
      */
 
-    private Command habilitarFormulario() {
-        // crear dtos, enviar el front las listas de tipos
-        throw new UnsupportedOperationException("Unimplemented method 'habilitarFormulario'");
+    private Command habilitarFormulario(boolean h) {
+        return new Command("Habilitar formulario", h);
     }
 
     private Command mostrarBatallaEnPreparacion() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'mostrarBatallaEnPreparacion'");
+        BatallaDto dto = new BatallaDto(batalla);
+        return new Command("batalla", dto);
     }
 
-    private Command actualizarTablero() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'actualizarTablero'");
+    // el tablero dibuja de a una celda por comando
+    private Command[] actualizarTablero() {
+        List<CeldaDto> celdas = new TableroDespliegueDto(batalla).getCeldas();
+        Command[] comandos = new Command[celdas.size()];
+        for (int i = 0; i < celdas.size(); i++) {
+            comandos[i] = new Command("mostrarAguasPropias", celdas.get(i));
+        }
+        return comandos;
     }
 
-    private Command batallaPreparada() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'batallaPreparada'");
+    private Command HabilitarDesplegarFlota(boolean h) {
+        return new Command("comenzar despliegue de flota", h);
     }
 
+    // "Posicione su [Tipo de barco] en forma [Orientación]" o "Batalla preparada" si no quedan barcos
+    private Command leyendaAccion() {
+        if (batalla.flotaDesplegada())
+            return new Command("leyendaAccion", "Batalla preparada");
+
+        String tipo = batalla.proximoBarco().getTipo().getNombre().toLowerCase();
+        return new Command("leyendaAccion",
+                "Posicione su " + tipo + " en forma " + orientacion.toLowerCase());
+    }
+
+    // CU02 responde directo a cada clic, no necesita reaccionar a eventos del modelo
     @Override
     public void actualizar(Observable origen, Object evento) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
     }
 }

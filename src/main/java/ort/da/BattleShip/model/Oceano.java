@@ -49,6 +49,17 @@ public class Oceano {
         return bList;
     }
 
+    // el océano es el experto en sus celdas: las expone recorridas fila por fila
+    public List<Celda> getCeldas() {
+        List<Celda> lista = new ArrayList<>();
+        for (int fila = 0; fila < alto; fila++) {
+            for (int columna = 0; columna < ancho; columna++) {
+                lista.add(celdas[fila][columna]);
+            }
+        }
+        return lista;
+    }
+
     public Celda getCelda(int coorX, int coorY) throws BattleException {
         if(coorX >= ancho || coorX < 0 || coorY >= alto || coorY < 0) 
             throw new BattleException("Disparo fuera de tablero");

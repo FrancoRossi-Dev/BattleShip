@@ -47,6 +47,7 @@ El tablero, al hacer clic, envía `{coordenadaVertical, coordenadaHorizontal}` a
   - [ ] Ajustar `TacticaCazaYAtaque.impactosSinHundir` para que use `celda.getBarco().isVivo()`
 - [ ] **Exponer celdas para la vista**: `Celda.valor(boolean mostrarBarcos)` (Experto) y que `Oceano` las recorra
   - aguas propias, aguas enemigas (ocultas), revelar barcos no descubiertos si la batalla se perdió
+  - [ ] CU03 necesita **su propio dto de tablero**, distinto de `TableroDespliegueDto` (que es solo para el despliegue de CU02). Reusar `CeldaDto` con `mostrarBarcos=false` para aguas enemigas
 - [ ] **Número de ronda** (`rondas.size() + 1` en combate)
 - [ ] **Barcos pendientes en preparación**: exponer desde `Batalla` (método polimórfico en el estado; lista vacía fuera de preparación) para la lista y la leyenda "Posicione su X en forma Y" / "Batalla preparada"
 - [ ] **Concurrencia**: `jugarRonda` `synchronized` (gana el primer disparo); revisar listas de `Observable`

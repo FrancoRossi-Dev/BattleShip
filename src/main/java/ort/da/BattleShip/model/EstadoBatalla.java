@@ -23,6 +23,11 @@ public abstract class EstadoBatalla {
 
     protected abstract boolean flotaDesplegada();
 
+    // solo tiene sentido en preparación; el resto de los estados no tiene barcos pendientes
+    protected Barco proximoBarco() {
+        return null;
+    }
+
     protected abstract boolean esFinalizada();
 
 }
