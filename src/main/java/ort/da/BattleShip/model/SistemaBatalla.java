@@ -40,10 +40,12 @@ public class SistemaBatalla {
     }
 
     public int porcentajeExito() {
-        if (batallas.isEmpty()) {
+        int ganadas = cantidadGanadas();
+        int finalizadas = ganadas + cantidadPerdidas();
+        if (finalizadas == 0) {
             return 0;
         }
-        return cantidadGanadas() * 100 / batallas.size();
+        return ganadas * 100 / finalizadas;
     }
 
     public Batalla getBatalla(int pos) throws BattleException {
