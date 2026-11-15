@@ -31,7 +31,8 @@ public class TacticaAtaque implements TacticaInterfaz {
     private List<Celda> impactosSinHundir(HistorialDisparos historial) {
         List<Celda> impactos = new ArrayList<>();
         for (Disparo d : historial.getDisparos()) {
-            if (d.isImpacto() && !d.hundioBarco()) impactos.add(d.getCelda());
+            // se mira el barco, no el disparo: hundioBarco() solo es true en el disparo que lo hundió
+            if (d.isImpacto() && d.getCelda().getBarco().isVivo()) impactos.add(d.getCelda());
         }
         return impactos;
     }

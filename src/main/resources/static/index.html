@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BattleShip - Sala de operaciones</title>
+    <link rel="stylesheet" href="/battleship.css">
+</head>
+<body>
+    <header class="banda">
+        <div class="marca">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#ancla"/></svg>
+            <div>
+                <span class="marca-nombre">BattleShip</span>
+                <span class="marca-lema">Supervisa · Planifica · Combate</span>
+            </div>
+        </div>
+        <p class="banda-cita">Cada batalla nos acerca a la victoria</p>
+    </header>
+
+    <!-- CU01: SALA DE OPERACIONES -->
+    <main class="panel">
+        <header class="encabezado">
+            <div>
+                <h1 class="titulo">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#timon"/></svg>
+                    Sala de operaciones
+                </h1>
+                <p class="subtitulo">Supervisá tus batallas y planificá la próxima.</p>
+            </div>
+        </header>
+
+        <section class="resumen" aria-label="Resumen de la campaña">
+            <div class="tarjeta dato dato-ganadas">
+                <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#trofeo"/></svg></span>
+                <div>
+                    <span class="dato-etiqueta">Total de batallas ganadas</span>
+                    <strong class="dato-valor" id="ganadas">0</strong>
+                </div>
+            </div>
+            <div class="tarjeta dato dato-perdidas">
+                <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#salvavidas"/></svg></span>
+                <div>
+                    <span class="dato-etiqueta">Total de batallas perdidas</span>
+                    <strong class="dato-valor" id="perdidas">0</strong>
+                </div>
+            </div>
+            <div class="tarjeta dato dato-exito">
+                <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#grafico"/></svg></span>
+                <div>
+                    <span class="dato-etiqueta">Éxito de la campaña</span>
+                    <strong class="dato-valor"><span id="porcentajeExito">0</span>%</strong>
+                    <span class="dato-detalle" id="detalleExito"></span>
+                </div>
+            </div>
+            <div class="resumen-accion">
+                <button type="button" id="btnNuevaBatalla" class="btn btn-grande">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#mas"/></svg>
+                    Iniciar nueva batalla
+                </button>
+            </div>
+        </section>
+
+        <section aria-labelledby="tituloListado">
+            <h2 class="seccion-titulo" id="tituloListado">
+                <svg class="icono" aria-hidden="true"><use href="/iconos.svg#timon"/></svg>
+                Listado de batallas
+            </h2>
+            <div class="tabla-contenedor">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th scope="col">Lugar del combate</th>
+                            <th scope="col" class="num">Dimensiones del océano</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Integridad de la flota propia</th>
+                            <th scope="col">Integridad de la flota enemiga</th>
+                            <th scope="col" class="accion"><span class="solo-lectores">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaBatallas">
+                        <tr class="vacia"><td colspan="6">Cargando batallas…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="pie">“Grandes mares forjan grandes estrategas.”</footer>
+
+    <div id="mensaje" class="mensaje" role="alert">
+        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#alerta"/></svg>
+        <span id="mensajeTexto" class="mensaje-texto"></span>
+        <button type="button" id="mensajeCerrar" class="mensaje-cerrar" aria-label="Cerrar mensaje">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#cerrar"/></svg>
+        </button>
+    </div>
+
+    <script type="module">
+        import dispatcher from '/CommandDispatcher.js';
+        import SSECommandDispatcher from '/SSECommandDispatcher.js';
+
+        const mensaje = document.getElementById('mensaje');
+        const mensajeTexto = document.getElementById('mensajeTexto');
+        const cuerpoTabla = document.getElementById('cuerpoTablaBatallas');
+
+        // estado de la batalla -> variante visual de la etiqueta
+        const CLASE_ESTADO = {
+            'Ganada': 'estado-ganada',
+            'Perdida': 'estado-perdida',
+            'En combate': 'estado-combate',
+            'En preparación': 'estado-preparacion'
+        };
+
+        function mostrarError(texto) {
+            mensajeTexto.textContent = texto;
+            mensaje.classList.add('visible');
+        }
+
+        function ocultarError() {
+            mensaje.classList.remove('visible');
+        }
+
+        function crearCelda(clase) {
+            const td = document.createElement('td');
+            if (clase) td.className = clase;
+            return td;
+        }
+
+        function icono(nombre) {
+            return `<svg class="icono" aria-hidden="true"><use href="/iconos.svg#${nombre}"/></svg>`;
+        }
+
+        // "sanas / total" con una barra proporcional
+        function celdaIntegridad(sanas, total) {
+            const td = crearCelda();
+            const porcentaje = total > 0 ? Math.round(sanas * 100 / total) : 0;
+            td.innerHTML = `<span class="integridad">
+                <span class="integridad-barra" aria-hidden="true"><span style="--valor: ${porcentaje}%"></span></span>
+                <span>${sanas} / ${total}</span></span>`;
+            return td;
+        }
+
+        function renderBatallas(batallas) {
+            cuerpoTabla.innerHTML = '';
+            if (!batallas || batallas.length === 0) {
+                cuerpoTabla.innerHTML = '<tr class="vacia"><td colspan="6">Todavía no hay batallas. Iniciá la primera.</td></tr>';
+                return;
+            }
+            batallas.forEach(b => {
+                const fila = document.createElement('tr');
+
+                // el lugar lo escribe el usuario: se inserta como texto
+                const lugar = crearCelda();
+                lugar.innerHTML = `<span class="lugar">${icono('isla')}<span></span></span>`;
+                lugar.querySelector('.lugar > span').textContent = b.lugar;
+
+                const dimensiones = crearCelda('num');
+                dimensiones.textContent = `${b.ancho} × ${b.alto}`;
+
+                const estado = crearCelda();
+                const etiqueta = document.createElement('span');
+                etiqueta.className = `estado ${CLASE_ESTADO[b.estado] || ''}`;
+                etiqueta.textContent = b.estado;
+                estado.appendChild(etiqueta);
+
+                const accion = crearCelda('accion');
+                const btnEntrar = document.createElement('button');
+                btnEntrar.type = 'button';
+                btnEntrar.className = 'btn btn-azul btn-chico';
+                btnEntrar.innerHTML = `Entrar ${icono('chevron-der')}`;
+                btnEntrar.addEventListener('click', () => {
+                    ocultarError();
+                    dispatcher.submit('/salaOperaciones/reanudarBatalla', { idBatalla: b.id });
+                });
+                accion.appendChild(btnEntrar);
+
+                fila.append(lugar, dimensiones, estado,
+                    celdaIntegridad(b.flotaPropiaSanas, b.tamanoFlotas),
+                    celdaIntegridad(b.flotaEnemigaSanas, b.tamanoFlotas),
+                    accion);
+                cuerpoTabla.appendChild(fila);
+            });
+        }
+
+        const view = dispatcher.registerView('salaOperaciones', {
+            urlInicio: '/salaOperaciones/vistaConectada',
+            urlCierre: '/salaOperaciones/vistaDesconectada',
+            onError: (status, texto) => mostrarError(`Error ${status}: ${texto}`),
+            onException: (msg) => mostrarError(msg)
+        });
+
+        const URL_SSE = '/salaOperaciones/registrarSSE';
+
+        // el SSE se abre recién con la respuesta de vistaConectada: así la sesión ya existe y el emitter
+        // queda en la misma sesión que el presentador. Si salen juntos en la primera visita (sin cookie),
+        // cada pedido crea su propia sesión y las notificaciones nunca llegan.
+        let sseConnection = null;
+        function conectarSSE() {
+            if (sseConnection === null) {
+                sseConnection = new SSECommandDispatcher(URL_SSE, dispatcher, cerrar);
+            }
+        }
+
+        view.handler('listaBatallas', (total) => {
+            conectarSSE();
+            const cantidad = (total.batallas || []).length;
+            document.getElementById('ganadas').textContent = total.ganadas;
+            document.getElementById('perdidas').textContent = total.perdidas;
+            document.getElementById('porcentajeExito').textContent = total.porcentajeExito;
+            document.getElementById('detalleExito').textContent = `(${total.ganadas} de ${cantidad} batallas)`;
+            renderBatallas(total.batallas);
+        });
+
+        view.handler('redirigir', (pagina) => {
+            window.location.href = pagina;
+        });
+
+        dispatcher.startView(view);
+
+        document.getElementById('btnNuevaBatalla').addEventListener('click', () => {
+            ocultarError();
+            dispatcher.submit('/salaOperaciones/nuevaBatalla');
+        });
+
+        document.getElementById('mensajeCerrar').addEventListener('click', ocultarError);
+
+        function cerrar() {
+            mostrarError('Se perdió la conexión con el servidor. Recargue la página.');
+        }
+    </script>
+</body>
+</html>

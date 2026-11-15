@@ -30,6 +30,7 @@ public class Celda {
     public Disparo recibirDisparo() throws BattleException {
         if(isDisparada()) throw new BattleException("La celda objetivo ya fue disparada");
         this.disparo = new Disparo(this);
+        disparo.registrarResultado();
         return disparo;
     }
 

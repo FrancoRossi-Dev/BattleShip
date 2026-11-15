@@ -1,0 +1,1337 @@
+/*
+ * BattleShip — hoja de estilos compartida por las vistas (CU01, CU02, CU03).
+ *
+ * Base: tablero-demo.css provisto por la cátedra (tipografía Segoe UI, tinta #18332d,
+ * bruma #f3f6f4, borde #d8e2dc, acción verde #176b57 / #105442, foco latón #e6a33b,
+ * radios de 4–6px). Sobre esa base se agrega una paleta marítima tomada de las
+ * pantallas de la letra: mar profundo de fondo, panel claro, títulos serif.
+ *
+ * El componente BattleShipBoard inyecta su propio CSS (.battle-ship-board-*):
+ * esta hoja no lo modifica.
+ */
+
+/* ============================================================
+   Tokens
+   ============================================================ */
+
+:root {
+  /* base tablero-demo.css */
+  --tinta: #18332d;
+  --bruma: #f3f6f4;
+  --superficie: #ffffff;
+  --borde: #d8e2dc;
+  --primario: #176b57;
+  --primario-oscuro: #105442;
+  --foco: #e6a33b;
+
+  /* extensión marítima */
+  --mar-abismo: #071a24;
+  --mar-profundo: #0f2e3d;
+  --mar: #1b4a5e;
+  --espuma: #e9f0ee;
+  --tinta-suave: #50665f;
+  --borde-fuerte: #b9c8c0;
+  --primario-suave: #e2f0ea;
+  --azul: #1d5f8a;
+  --azul-oscuro: #164a6c;
+  --azul-suave: #e7f0f7;
+  --laton: #e6a33b;
+  --laton-oscuro: #a8711a;
+  --peligro: #a8322b;
+  --peligro-suave: #fbe9e7;
+  --aviso: #8a5a0b;
+  --aviso-suave: #fcf0d8;
+  --neutro: #4a5a63;
+  --neutro-suave: #e9eef0;
+
+  /* tipografía */
+  --fuente: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --fuente-titulos: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+
+  /* forma */
+  --radio: 6px;
+  --radio-chico: 4px;
+  --sombra-panel: 0 24px 60px rgba(3, 14, 20, 0.45), 0 2px 6px rgba(3, 14, 20, 0.25);
+  --sombra-tarjeta: 0 1px 2px rgba(24, 51, 45, 0.06), 0 2px 8px rgba(24, 51, 45, 0.05);
+
+  --ancho-contenido: 1140px;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fuente);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--tinta);
+  background-color: var(--mar-abismo);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(230, 163, 59, 0.16), transparent 65%),
+    radial-gradient(ellipse 60% 40% at 50% 112%, rgba(43, 118, 148, 0.35), transparent 70%),
+    linear-gradient(180deg, #0c2634 0%, #081d28 55%, #06151d 100%);
+  background-attachment: fixed;
+}
+
+/* oleaje sutil en el horizonte */
+body::before {
+  content: "";
+  position: fixed;
+  inset: auto 0 0 0;
+  height: 240px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.5'%3E%3Cpath stroke-opacity='.05' d='M0 40 Q60 22 120 40 T240 40 T360 40 T480 40'/%3E%3Cpath stroke-opacity='.07' d='M0 75 Q60 57 120 75 T240 75 T360 75 T480 75'/%3E%3Cpath stroke-opacity='.09' d='M0 108 Q60 90 120 108 T240 108 T360 108 T480 108'/%3E%3C/g%3E%3C/svg%3E") repeat-x bottom / 480px 120px;
+}
+
+.banda,
+.panel,
+.pie {
+  position: relative;
+  z-index: 1;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--mar-profundo);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--azul);
+}
+
+.icono {
+  width: 1.25em;
+  height: 1.25em;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+
+.oculto {
+  display: none !important;
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Marco común: banda superior, panel y pie
+   ============================================================ */
+
+.banda {
+  width: min(100% - 2rem, var(--ancho-contenido));
+  margin: 0 auto;
+  padding: 1.5rem 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  color: var(--espuma);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.marca > .icono {
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--laton);
+  stroke-width: 1.75;
+}
+
+.marca-nombre {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.marca-lema {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.banda-cita {
+  max-width: 11rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(233, 240, 238, 0.25);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.panel {
+  width: min(100% - 2rem, var(--ancho-contenido));
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--bruma);
+  border: 1px solid rgba(216, 226, 220, 0.6);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-panel);
+}
+
+.pie {
+  margin-top: auto;
+  padding: 2.25rem 1rem 2.5rem;
+  text-align: center;
+  font-family: var(--fuente-titulos);
+  font-style: italic;
+  color: rgba(233, 240, 238, 0.65);
+}
+
+.pie::after {
+  content: "";
+  display: block;
+  width: 4rem;
+  height: 1px;
+  margin: 0.75rem auto 0;
+  background: rgba(230, 163, 59, 0.5);
+}
+
+/* ============================================================
+   Encabezado de cada vista
+   ============================================================ */
+
+.encabezado {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--fuente-titulos);
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.titulo > .icono {
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--laton-oscuro);
+  stroke-width: 1.75;
+}
+
+.subtitulo {
+  margin-top: 0.4rem;
+  color: var(--tinta-suave);
+}
+
+.subtitulo strong {
+  color: var(--tinta);
+}
+
+.subtitulo .icono {
+  color: var(--tinta-suave);
+}
+
+/* "Volver a la sala de operaciones" */
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 0.6rem -0.35rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.35rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--azul);
+  background: none;
+  border: 0;
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+}
+
+.volver:hover {
+  color: var(--azul-oscuro);
+  background: var(--azul-suave);
+}
+
+/* ============================================================
+   Botones (mismo lenguaje que tablero-demo.css)
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 1.15rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primario);
+  border: 1px solid var(--primario);
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  background: var(--primario-oscuro);
+  border-color: var(--primario-oscuro);
+  box-shadow: 0 4px 12px rgba(16, 84, 66, 0.25);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn-grande {
+  min-height: 3.25rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.05rem;
+}
+
+.btn-ancho {
+  width: 100%;
+}
+
+.btn-azul {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+
+.btn-azul:hover {
+  background: var(--azul-oscuro);
+  border-color: var(--azul-oscuro);
+  box-shadow: 0 4px 12px rgba(22, 74, 108, 0.25);
+}
+
+.btn-secundario {
+  color: var(--tinta);
+  background: var(--superficie);
+  border-color: var(--borde-fuerte);
+}
+
+.btn-secundario:hover {
+  background: var(--bruma);
+  border-color: var(--tinta-suave);
+  box-shadow: none;
+}
+
+.btn-chico {
+  min-height: 2rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn .icono {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ============================================================
+   Tarjetas
+   ============================================================ */
+
+.tarjeta {
+  padding: 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tarjeta-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.tarjeta-cabecera h2 {
+  font-family: var(--fuente-titulos);
+  font-size: 1.15rem;
+}
+
+.tarjeta-cabecera p {
+  font-size: 0.8rem;
+  color: var(--tinta-suave);
+}
+
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-family: var(--fuente-titulos);
+  font-size: 1.05rem;
+}
+
+.tarjeta-titulo .icono {
+  color: var(--mar);
+}
+
+/* azulejo con el ícono de cada tarjeta */
+.insignia {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  color: var(--mar);
+  background: var(--azul-suave);
+  border-radius: var(--radio);
+}
+
+.insignia .icono {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* ============================================================
+   Etiquetas de estado de batalla
+   ============================================================ */
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--neutro);
+  background: var(--neutro-suave);
+  border-radius: 999px;
+}
+
+.estado::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.estado-ganada {
+  color: var(--primario);
+  background: var(--primario-suave);
+}
+
+.estado-perdida {
+  color: var(--peligro);
+  background: var(--peligro-suave);
+}
+
+.estado-combate {
+  color: var(--aviso);
+  background: var(--aviso-suave);
+}
+
+/* ============================================================
+   CU01 — Sala de operaciones
+   ============================================================ */
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 2rem;
+}
+
+.dato {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.dato-etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+
+.dato-valor {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dato-detalle {
+  font-size: 0.75rem;
+  color: var(--tinta-suave);
+}
+
+.dato-ganadas .insignia {
+  color: var(--primario);
+  background: var(--primario-suave);
+}
+
+.dato-ganadas .dato-valor {
+  color: var(--primario);
+}
+
+.dato-perdidas .insignia {
+  color: var(--peligro);
+  background: var(--peligro-suave);
+}
+
+.dato-perdidas .dato-valor {
+  color: var(--peligro);
+}
+
+.dato-exito .dato-valor {
+  color: var(--azul);
+}
+
+.resumen-accion {
+  display: flex;
+  align-items: center;
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-family: var(--fuente-titulos);
+  font-size: 1.3rem;
+}
+
+.seccion-titulo .icono {
+  color: var(--laton-oscuro);
+}
+
+/* tabla de batallas */
+.tabla-contenedor {
+  overflow-x: auto;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tabla {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla th {
+  padding: 0.8rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  color: var(--espuma);
+  background: var(--mar-profundo);
+}
+
+.tabla td {
+  padding: 0.7rem 1rem;
+  border-top: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:nth-child(even) td {
+  background: #fafcfb;
+}
+
+.tabla tbody tr:hover td {
+  background: var(--azul-suave);
+}
+
+.tabla .num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla .accion {
+  text-align: right;
+}
+
+.tabla .vacia td {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--tinta-suave);
+  background: var(--superficie);
+}
+
+.lugar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+}
+
+.lugar .icono {
+  color: var(--mar);
+}
+
+/* integridad de la flota: barra + "sanas / total" */
+.integridad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.integridad-barra {
+  width: 3.5rem;
+  height: 0.4rem;
+  overflow: hidden;
+  background: var(--neutro-suave);
+  border-radius: 999px;
+}
+
+.integridad-barra > span {
+  display: block;
+  height: 100%;
+  width: var(--valor, 0%);
+  background: var(--mar);
+  border-radius: inherit;
+}
+
+/* ============================================================
+   Formularios (CU02 paso 1)
+   ============================================================ */
+
+.configuracion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.campo {
+  margin-bottom: 1.15rem;
+}
+
+.campo:last-child {
+  margin-bottom: 0;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.control {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.control:hover {
+  border-color: var(--tinta-suave);
+}
+
+.control:focus {
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 3px rgba(230, 163, 59, 0.45);
+}
+
+.control-numero {
+  width: 6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ayuda {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--tinta-suave);
+}
+
+/* tabla de flota */
+.tabla-flota {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla-flota th {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--espuma);
+  background: var(--mar-profundo);
+}
+
+.tabla-flota th:first-child {
+  border-top-left-radius: var(--radio-chico);
+}
+
+.tabla-flota th:last-child {
+  border-top-right-radius: var(--radio-chico);
+}
+
+.tabla-flota td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla-flota .num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-flota .control-numero {
+  width: 4.75rem;
+  min-height: 2.25rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* densidad de ocupación de la flota (CU02 paso 1) */
+.densidad {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--bruma);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
+}
+
+.densidad-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.densidad-etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+
+.densidad-valor {
+  font-family: var(--fuente-titulos);
+  font-size: 1.2rem;
+  color: var(--primario);
+  font-variant-numeric: tabular-nums;
+}
+
+.densidad-barra {
+  position: relative;
+  height: 0.5rem;
+  overflow: hidden;
+  background: var(--neutro-suave);
+  border-radius: 999px;
+}
+
+.densidad-relleno {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--primario);
+  border-radius: inherit;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* marca del límite (25% = mitad de la barra) */
+.densidad-limite {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--tinta);
+  opacity: 0.45;
+}
+
+.densidad-detalle {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--tinta-suave);
+}
+
+.densidad.excedida {
+  background: var(--peligro-suave);
+  border-color: #efc9c4;
+}
+
+.densidad.excedida .densidad-valor,
+.densidad.excedida .densidad-detalle {
+  color: var(--peligro);
+}
+
+.densidad.excedida .densidad-relleno {
+  background: var(--peligro);
+}
+
+.tipo-barco {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+}
+
+.tipo-barco .icono {
+  color: var(--mar);
+}
+
+/* ============================================================
+   Avisos: leyenda informativa, error flotante y diálogo
+   ============================================================ */
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.875rem;
+  color: var(--azul-oscuro);
+  background: var(--azul-suave);
+  border: 1px solid #c6dbea;
+  border-radius: var(--radio-chico);
+}
+
+.aviso .icono {
+  margin-top: 0.05rem;
+}
+
+.aviso-exito {
+  color: var(--primario-oscuro);
+  background: var(--primario-suave);
+  border-color: #bfdcd0;
+}
+
+.tarjeta .aviso {
+  margin-top: 1rem;
+}
+
+/* error: aparece abajo, sobre el contenido, sin desplazar el diseño */
+.mensaje {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 20;
+  display: none;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: min(100% - 2rem, 34rem);
+  padding: 0.85rem 0.85rem 0.85rem 1rem;
+  font-size: 0.925rem;
+  color: var(--peligro);
+  background: var(--superficie);
+  border: 1px solid #efc9c4;
+  border-left: 4px solid var(--peligro);
+  border-radius: var(--radio);
+  box-shadow: 0 12px 32px rgba(3, 14, 20, 0.35);
+  transform: translateX(-50%);
+}
+
+.mensaje.visible {
+  display: flex;
+  animation: aparecer 0.2s ease-out;
+}
+
+.mensaje-texto {
+  flex: 1;
+  color: var(--tinta);
+}
+
+.mensaje-cerrar {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--tinta-suave);
+  background: none;
+  border: 0;
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+}
+
+.mensaje-cerrar:hover {
+  color: var(--tinta);
+  background: var(--bruma);
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.dialogo {
+  width: min(100% - 2rem, 26rem);
+  padding: 1.75rem;
+  color: var(--tinta);
+  background: var(--bruma);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-panel);
+  text-align: center;
+}
+
+.dialogo::backdrop {
+  background: rgba(7, 26, 36, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+.dialogo .insignia {
+  margin: 0 auto 1rem;
+  color: var(--primario);
+  background: var(--primario-suave);
+}
+
+.dialogo h2 {
+  font-family: var(--fuente-titulos);
+  font-size: 1.35rem;
+}
+
+.dialogo p {
+  margin-top: 0.5rem;
+  color: var(--tinta-suave);
+}
+
+.dialogo .acciones {
+  justify-content: center;
+}
+
+/* ============================================================
+   Tablero (contenedor del componente BattleShipBoard)
+   ============================================================ */
+
+.oceanos {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+/*
+ * CU02: vista previa del barco que se está ubicando (la calcula nuevaBatalla.html).
+ * BattleShipBoard pinta el fondo de las celdas con estilos en línea al pasar el mouse,
+ * por eso estas clases necesitan !important para quedar por encima.
+ */
+.battle-ship-board-cell.preview-barco {
+  background: rgba(23, 107, 87, 0.55) !important;
+  box-shadow: inset 0 0 0 2px var(--primario-oscuro) !important;
+  transform: none !important;
+}
+
+.battle-ship-board-cell.preview-adyacente {
+  background: rgba(23, 107, 87, 0.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(23, 107, 87, 0.35) !important;
+  transform: none !important;
+}
+
+.battle-ship-board-cell.preview-barco.preview-ilegal {
+  background: rgba(168, 50, 43, 0.6) !important;
+  box-shadow: inset 0 0 0 2px var(--peligro) !important;
+}
+
+.battle-ship-board-cell.preview-adyacente.preview-ilegal {
+  background: rgba(168, 50, 43, 0.2) !important;
+  box-shadow: inset 0 0 0 1px rgba(168, 50, 43, 0.4) !important;
+}
+
+/* la celda adyacente que tiene un barco (causa del conflicto) se marca más fuerte */
+.battle-ship-board-cell.preview-adyacente.preview-conflicto {
+  background: rgba(168, 50, 43, 0.45) !important;
+  box-shadow: inset 0 0 0 2px var(--peligro) !important;
+}
+
+/* ============================================================
+   CU02 paso 2 — Desplegando la flota
+   ============================================================ */
+
+.despliegue {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 1rem;
+  align-items: start;
+}
+
+.lateral {
+  display: grid;
+  gap: 1rem;
+}
+
+.lateral .tarjeta {
+  padding: 1rem;
+}
+
+/* lista numerada de barcos pendientes */
+.lista-barcos {
+  max-height: 18rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  counter-reset: barco;
+}
+
+.lista-barcos li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--borde);
+  counter-increment: barco;
+}
+
+.lista-barcos li::before {
+  content: counter(barco);
+  min-width: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.lista-barcos li:last-child {
+  border-bottom: 0;
+}
+
+.lista-barcos li .icono {
+  color: var(--mar);
+}
+
+.lista-barcos li.seleccionado {
+  font-weight: 600;
+  color: var(--azul-oscuro);
+  background: var(--azul-suave);
+  border-radius: var(--radio-chico);
+  box-shadow: inset 3px 0 0 var(--laton);
+}
+
+.lista-barcos:empty::after {
+  content: "Toda la flota está desplegada.";
+  display: block;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+/* orientación: control segmentado sobre radios nativos */
+.segmentado {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.25rem;
+  background: var(--bruma);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.segmentado label {
+  position: relative;
+}
+
+.segmentado input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmentado span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* pictograma de la orientación */
+.segmentado span::before {
+  content: "";
+  width: 1.1rem;
+  height: 0.4rem;
+  background: currentColor;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.segmentado .vertical span::before {
+  width: 0.4rem;
+  height: 1.1rem;
+}
+
+.segmentado span:hover {
+  color: var(--tinta);
+}
+
+.segmentado input:checked + span {
+  color: #fff;
+  background: var(--mar);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.segmentado input:focus-visible + span {
+  outline: 3px solid var(--foco);
+  outline-offset: 1px;
+}
+
+/* ============================================================
+   CU03 — Librar batalla
+   ============================================================ */
+
+.marcadores {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.marcador {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  font-weight: 600;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.marcador > .icono {
+  color: var(--mar);
+}
+
+.marcador-etiqueta {
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+.marcador-valor {
+  font-family: var(--fuente-titulos);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* panel de estado: flota propia y enemiga (reusa .despliegue / .lateral de CU02) */
+.flota-resumen {
+  margin-left: auto;
+  font-family: var(--fuente);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.flota-estado {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 14rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.flota-estado li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--tinta);
+  background: var(--bruma);
+  border-radius: var(--radio-chico);
+}
+
+.flota-estado:empty::after {
+  content: "Sin barcos.";
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+/* casco: una sección por celda del barco */
+.casco {
+  display: inline-flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.casco span {
+  width: 0.8rem;
+  height: 0.8rem;
+  background: var(--mar);
+  border-radius: 2px;
+}
+
+.casco span:first-child {
+  border-radius: 2px 2px 2px 0.45rem;
+}
+
+.casco span:last-child {
+  border-radius: 2px 0.45rem 2px 2px;
+}
+
+.casco span:only-child {
+  border-radius: 2px 0.45rem 2px 0.45rem;
+}
+
+/* sección impactada de un barco propio que sigue a flote */
+.casco span.danada {
+  background: var(--laton);
+}
+
+.flota-texto {
+  color: var(--tinta-suave);
+}
+
+.flota-estado li.hundido {
+  background: var(--peligro-suave);
+}
+
+.flota-estado li.hundido .casco span {
+  background: #e3a39c;
+}
+
+.flota-estado li.hundido .flota-texto {
+  color: var(--peligro);
+  text-decoration: line-through;
+}
+
+/* cartel de fin de batalla: la variante de victoria usa los colores por defecto de .dialogo */
+.dialogo-derrota .insignia {
+  color: var(--peligro);
+  background: var(--peligro-suave);
+}
+
+.dialogo-derrota h2 {
+  color: var(--peligro);
+}
+
+/* ============================================================
+   Responsivo y accesibilidad
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .resumen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .resumen-accion {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .configuracion {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .configuracion .tarjeta-flota {
+    grid-column: 1 / -1;
+  }
+
+  .despliegue {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lateral {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .banda-cita {
+    display: none;
+  }
+
+  .panel {
+    padding: 1.25rem 1rem;
+  }
+
+  .resumen,
+  .configuracion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resumen-accion .btn {
+    width: 100%;
+  }
+
+  .acciones .btn {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

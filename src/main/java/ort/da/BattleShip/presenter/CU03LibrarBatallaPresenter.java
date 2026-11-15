@@ -8,16 +8,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import ort.da.BattleShip.dto.CeldaDto;
+import ort.da.BattleShip.dto.InicializarTableroDto;
+import ort.da.BattleShip.dto.TableroCombateDto;
+import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
-import ort.da.BattleShip.model.Celda;
 import ort.da.BattleShip.model.Facade;
+import ort.da.BattleShip.model.Ronda;
 import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
 import ort.da.BattleShip.observador.Observador;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 // CU03: LIBRAR BATALLA 
@@ -60,15 +63,13 @@ public class CU03LibrarBatallaPresenter implements Observador {
     */
     @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam int idBatalla) throws BattleException {
-        // TODO evaluar: el presenter es de sesion, si se entra a otra batalla sin que llegue
-        // vistaDesconectada (urlCierre), la batalla anterior queda con este observador y sus
-        // eventos se mostrarian sobre batallaActual. Posible fix: quitar el observador de la
-        // batalla anterior antes de reasignar batallaActual.
         batallaActual = f.getBatalla(idBatalla);
-
         batallaActual.agregarObservador(this);
-        
-        return Commands.create(MostrarEstadisticaBatalla(), HabilitarJuego());
+
+        // también se entra a ver batallas ganadas o perdidas: el tablero queda habilitado igual y
+        // un disparo en una batalla finalizada lo rechaza el modelo ("La batalla ya está finalizada")
+        return Commands.create(lugarBatalla(), estadoBatalla(), numeroRonda(), inicializarTablero(),
+                tableroPropio(), tableroEnemigo(), bajasEnemigas());
     }
 
     @PostMapping("/vistaDesconectada")
@@ -99,13 +100,20 @@ public class CU03LibrarBatallaPresenter implements Observador {
  
     */
    
+    // los nombres de parámetros son los que envía BattleShipBoard al hacer clic.
+    // vertical = fila (Y), horizontal = columna (X)
     @PostMapping("/jugarRonda")
-    public Commands jugarRonda(@RequestParam int CoorX, @RequestParam int CoorY) throws BattleException {
-        batallaActual.jugarRonda(CoorX, CoorY);
-        if (batallaActual.esFinalizada()) {
-            return Commands.create(juegoFinalizado(), actualizarTablero());
-        }
-        return Commands.create(actualizarTablero());
+    public Commands jugarRonda(@RequestParam int coordenadaVertical, @RequestParam int coordenadaHorizontal) throws BattleException {
+        // los disparos de la ronda y el fin de la batalla llegan a la vista por SSE, desde actualizar()
+        // (mismo criterio que CU02: no se devuelven también acá para no dibujar dos veces)
+        batallaActual.jugarRonda(coordenadaHorizontal, coordenadaVertical);
+        return Commands.create();
+    }
+
+    // flujo alternativo 2: clic en aguas propias
+    @PostMapping("/aguasPropias")
+    public Commands aguasPropias() throws BattleException {
+        throw new BattleException("No puede disparar a sus propias aguas");
     }
      
     /*
@@ -118,8 +126,8 @@ public class CU03LibrarBatallaPresenter implements Observador {
 
     @PostMapping("/volverASala")
     public Commands volverASala() {
-        // validar que una batalla este en juego?
-        return Commands.create(CommonCommands.Redirection("SalaOperaciones.html"));
+        // la batalla queda pausada tal como está: no hay nada que guardar
+        return Commands.create(CommonCommands.redirigir("index.html"));
     }
     
 
@@ -188,35 +196,73 @@ Flujos alternativos
 
 // COMANDS
 
-    private Command HabilitarJuego() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'HabilitarJuego'");
+    // como en Agenda (nombreUsuario, cantidadContactos), cada dato simple va en su propio comando
+    private Command lugarBatalla() {
+        return new Command("lugarBatalla", batallaActual.getLugar());
     }
 
-    private Command MostrarEstadisticaBatalla() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'MostrarEstadisticaBatalla'");
+    private Command estadoBatalla() {
+        return new Command("estadoBatalla", batallaActual.getEstado().getNombre());
     }
 
-    private Command revelarBarcos() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'revelarBarcos'");
+    private Command numeroRonda() {
+        return new Command("numeroRonda", batallaActual.numeroRonda());
     }
 
-    private Command actualizarTablero() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'actualizarTablero'");
+    // aguas enemigas -> jugarRonda; aguas propias -> error "No puede disparar a sus propias aguas"
+    private Command inicializarTablero() {
+        return new Command("inicializar", new InicializarTableroDto(batallaActual.getAlto(), batallaActual.getAncho(),
+                "/librarBatalla/aguasPropias", "/librarBatalla/jugarRonda"));
     }
 
-    private Command juegoFinalizado() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'juegoFinalizado'");
+    private Command tableroPropio() {
+        return new Command("tableroPropio", new TableroCombateDto(batallaActual.celdasPropias(), true));
+    }
+
+    // si la batalla se perdió se revelan los barcos enemigos no descubiertos
+    private Command tableroEnemigo() {
+        return new Command("tableroEnemigo",
+                new TableroCombateDto(batallaActual.celdasEnemigas(), batallaActual.isPerdida()));
+    }
+
+    // formato pedido por la letra: "{4} {1} {2}", en el orden en que se hundieron.
+    // vacío -> BattleShipBoard muestra "Ninguna"
+    private Command bajasEnemigas() {
+        String bajas = "";
+        for (Barco b : batallaActual.bajasEnemigas()) {
+            if (!bajas.isEmpty()) bajas += " ";
+            bajas += "{" + b.getTamano() + "}";
+        }
+        return new Command("bajasEnemigas", bajas);
+    }
+
+    // los dos disparos de la ronda van en el mismo Commands: la vista los ve juntos (ronda atómica)
+    private Commands rondaJugada() {
+        Ronda r = batallaActual.ultimaRonda();
+        Commands comandos = Commands.create(
+                new Command("mostrarAguasEnemigas", new CeldaDto(r.getDisparoHumano().getCelda(), false)));
+        // si el humano hundió la flota enemiga, la máquina no dispara
+        if (r.getDisparoMaquina() != null) {
+            comandos.add(new Command("mostrarAguasPropias", new CeldaDto(r.getDisparoMaquina().getCelda(), true)));
+        }
+        return comandos.add(bajasEnemigas(), numeroRonda());
+    }
+
+    // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda)
+    private Commands batallaFinalizada() {
+        Commands comandos = Commands.create(estadoBatalla(), numeroRonda());
+        if (batallaActual.isPerdida()) comandos.add(tableroEnemigo());
+        return comandos;
     }
 
     @Override
     public void actualizar(Observable origen, Object evento) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'actualizar'");
+        if (evento.equals(Batalla.events.RONDA_FINALIZADA)) {
+            conexionNavegador.enviarJSON(rondaJugada());
+        }
+        if (evento.equals(Batalla.events.CAMBIO_ESTADO)) {
+            conexionNavegador.enviarJSON(batallaFinalizada());
+        }
     }
 
 }

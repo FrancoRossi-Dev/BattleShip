@@ -71,11 +71,23 @@ public class Oceano {
         Celda objetivo = getCelda(o.getColumna(), o.getFila());
         Disparo d = objetivo.recibirDisparo();
         if(d.isImpacto()) impactos++;
+        if(d.hundioBarco()) hundir(objetivo.getBarco());
         return d;
     }
 
+    // al hundirse pasa a la lista de hundidos: queda en orden cronológico (bajas enemigas)
+    // y flotaHundida() se cumple cuando no quedan vivos
+    private void hundir(Barco b) {
+        barcosVivos.remove(b);
+        barcosHundidos.add(b);
+    }
+
+    public List<Barco> getBarcosHundidos() {
+        return new ArrayList<>(barcosHundidos);
+    }
+
     public void desplegarBarco(
-        TipoBarco tb, 
+        TipoBarco tb,
         int coorX, 
         int coorY, 
         String orientacion
@@ -130,5 +142,10 @@ public class Oceano {
                     throw new BattleException("No puede estar adyacente a otro barco");
             }
         }
+    }
+
+    // en preparación todavía no se hundió ningún barco, así que el último vivo es el último ubicado
+    public Barco getUltimoBarcoDesplegado() {
+        return barcosVivos.getLast();
     }
 }

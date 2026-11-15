@@ -76,13 +76,14 @@ El tablero, al hacer clic, envía `{coordenadaVertical, coordenadaHorizontal}` a
 
 ## 7. Precarga (`DatosPrueba`)
 
-- [ ] Una batalla por estado (hoy solo hay una en preparación):
-  - [x] En preparación (Malvinas)
-  - [ ] En combate
-  - [ ] Ganada
-  - [ ] Perdida
-- [ ] Para armarlas: desplegar barcos humanos → `librarBatalla()` → jugar rondas por código
-- [ ] Al menos dos barcos de distinto tamaño por batalla
+- [x] Una batalla por estado (5 en total):
+  - [x] En preparación sin barcos ubicados (Malvinas)
+  - [x] En preparación con la flota a medio ubicar (Trafalgar)
+  - [x] En combate, 3 rondas jugadas (Midway)
+  - [x] Ganada (Jutlandia)
+  - [x] Perdida (Leyte)
+- [x] Para armarlas: desplegar barcos humanos → `librarBatalla()` → jugar rondas por código
+- [x] Al menos dos barcos de distinto tamaño por batalla
 
 ## 8. Entregables no-código
 

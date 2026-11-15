@@ -1,5 +1,8 @@
 package ort.da.BattleShip.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 
 public abstract class EstadoBatalla {
@@ -26,6 +29,15 @@ public abstract class EstadoBatalla {
     // solo tiene sentido en preparación; el resto de los estados no tiene barcos pendientes
     protected Barco proximoBarco() {
         return null;
+    }
+
+    protected List<Barco> barcosPendientes() {
+        return new ArrayList<>();
+    }
+
+    // CU01 "Entrar": en preparación se continúa el despliegue (CU02), en el resto se libra o se ve (CU03)
+    protected boolean enPreparacion() {
+        return false;
     }
 
     protected abstract boolean esFinalizada();

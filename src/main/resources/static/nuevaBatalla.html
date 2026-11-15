@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BattleShip - Nueva batalla</title>
+    <link rel="stylesheet" href="/battleship.css">
+</head>
+<body>
+    <header class="banda">
+        <div class="marca">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#ancla"/></svg>
+            <div>
+                <span class="marca-nombre">BattleShip</span>
+                <span class="marca-lema">Supervisa · Planifica · Combate</span>
+            </div>
+        </div>
+        <p class="banda-cita">Cada batalla nos acerca a la victoria</p>
+    </header>
+
+    <!-- CU02: PREPARAR UNA NUEVA BATALLA -->
+    <main class="panel">
+
+        <!-- Paso 1: datos básicos -->
+        <section id="seccionFormulario" class="oculto">
+            <header class="encabezado">
+                <div>
+                    <button type="button" class="volver" data-volver>
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-izq"/></svg>
+                        Volver a la sala de operaciones
+                    </button>
+                    <h1 class="titulo">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#timon"/></svg>
+                        Preparar una nueva batalla
+                    </h1>
+                    <p class="subtitulo">Configurá el escenario, tu flota y la táctica del oponente. Luego vas a desplegar tus barcos en el tablero.</p>
+                </div>
+            </header>
+
+            <form id="formNuevaBatalla" novalidate>
+                <div class="configuracion">
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera">
+                            <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#isla"/></svg></span>
+                            <div>
+                                <h2>Lugar del combate</h2>
+                                <p>Cada batalla tiene su propia historia.</p>
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="lugar">Nombre del combate</label>
+                            <input type="text" id="lugar" name="lugar" class="control" autocomplete="off" placeholder="Ej.: Bahía del Trueno">
+                            <p class="ayuda">Si lo dejás vacío se asigna un nombre aleatorio.</p>
+                        </div>
+                        <div class="campo">
+                            <label for="tactica">Táctica de juego del oponente</label>
+                            <select id="tactica" name="tactica" class="control"></select>
+                        </div>
+                    </div>
+
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera">
+                            <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#olas"/></svg></span>
+                            <div>
+                                <h2>Océano</h2>
+                                <p>Definí el tamaño del campo de batalla.</p>
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="ancho">Celdas horizontales (ancho)</label>
+                            <input type="number" id="ancho" name="ancho" class="control control-numero" value="10" inputmode="numeric">
+                            <p class="ayuda">Entre 6 y 12</p>
+                        </div>
+                        <div class="campo">
+                            <label for="alto">Celdas verticales (alto)</label>
+                            <input type="number" id="alto" name="alto" class="control control-numero" value="10" inputmode="numeric">
+                            <p class="ayuda">Entre 6 y 12</p>
+                        </div>
+                    </div>
+
+                    <div class="tarjeta tarjeta-flota">
+                        <div class="tarjeta-cabecera">
+                            <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#barco"/></svg></span>
+                            <div>
+                                <h2>Flota</h2>
+                                <p>Definí la cantidad de barcos de cada tipo.</p>
+                            </div>
+                        </div>
+                        <table class="tabla-flota">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tipo de barco</th>
+                                    <th scope="col" class="num">Tamaño (celdas)</th>
+                                    <th scope="col" class="num">Cantidad (0 - 6)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flota"></tbody>
+                        </table>
+
+                        <!-- solo informativo: la validación de densidad la hace el servidor al continuar -->
+                        <div id="densidad" class="densidad" aria-live="polite">
+                            <div class="densidad-cabecera">
+                                <span class="densidad-etiqueta">Densidad de ocupación</span>
+                                <strong id="densidadValor" class="densidad-valor">0%</strong>
+                            </div>
+                            <div class="densidad-barra" aria-hidden="true">
+                                <span id="densidadRelleno" class="densidad-relleno"></span>
+                                <span class="densidad-limite" title="Límite: 25%"></span>
+                            </div>
+                            <p id="densidadDetalle" class="densidad-detalle">0 de 0 celdas · debe ser menor al 25%</p>
+                        </div>
+
+                        <p class="aviso">
+                            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#info"/></svg>
+                            <span>Ingresá una cantidad entre 0 y 6 para cada tipo de barco. La flota debe ocupar menos del 25% del océano.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="acciones">
+                    <button type="submit" class="btn btn-grande">
+                        Continuar
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-der"/></svg>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Paso 2: desplegando la flota -->
+        <section id="seccionDespliegue" class="oculto">
+            <header class="encabezado">
+                <div>
+                    <button type="button" class="volver" data-volver>
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-izq"/></svg>
+                        Volver a la sala de operaciones
+                    </button>
+                    <h1 class="titulo">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#timon"/></svg>
+                        Desplegando la Flota
+                    </h1>
+                    <p class="subtitulo">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#isla"/></svg>
+                        Lugar del combate: <strong id="lugarBatalla">-</strong>
+                    </p>
+                </div>
+            </header>
+
+            <div class="despliegue">
+                <div class="tarjeta oceanos">
+                    <div id="tablero" class="tablero"></div>
+                </div>
+
+                <aside class="lateral">
+                    <div class="tarjeta">
+                        <h2 class="tarjeta-titulo">
+                            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#barco"/></svg>
+                            Barcos disponibles
+                        </h2>
+                        <ol id="listaBarcos" class="lista-barcos"></ol>
+                    </div>
+
+                    <div class="tarjeta">
+                        <h2 class="tarjeta-titulo" id="tituloOrientacion">
+                            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#rotar"/></svg>
+                            Orientación
+                        </h2>
+                        <div class="segmentado" role="radiogroup" aria-labelledby="tituloOrientacion">
+                            <label class="horizontal">
+                                <input type="radio" name="orientacion" value="HORIZONTAL" checked>
+                                <span>Horizontal</span>
+                            </label>
+                            <label class="vertical">
+                                <input type="radio" name="orientacion" value="VERTICAL">
+                                <span>Vertical</span>
+                            </label>
+                        </div>
+                        <p id="leyendaCaja" class="aviso" role="status" aria-live="polite">
+                            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#info"/></svg>
+                            <span id="leyenda">-</span>
+                        </p>
+                    </div>
+
+                    <button type="button" id="btnLibrar" class="btn btn-grande btn-ancho">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#espadas"/></svg>
+                        Librar batalla
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-der"/></svg>
+                    </button>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <footer class="pie">“Grandes mares forjan grandes estrategas.”</footer>
+
+    <div id="mensaje" class="mensaje" role="alert">
+        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#alerta"/></svg>
+        <span id="mensajeTexto" class="mensaje-texto"></span>
+        <button type="button" id="mensajeCerrar" class="mensaje-cerrar" aria-label="Cerrar mensaje">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#cerrar"/></svg>
+        </button>
+    </div>
+
+    <!-- confirmación al ubicar el último barco -->
+    <dialog id="dialogoLista" class="dialogo" aria-labelledby="dialogoTitulo">
+        <span class="insignia"><svg class="icono" aria-hidden="true"><use href="/iconos.svg#ancla"/></svg></span>
+        <h2 id="dialogoTitulo">Batalla preparada</h2>
+        <p>La flota está desplegada en <strong id="dialogoLugar"></strong>. ¿Librás la batalla ahora?</p>
+        <div class="acciones">
+            <button type="button" id="btnDialogoVolver" class="btn btn-secundario">Volver a la sala</button>
+            <button type="button" id="btnDialogoLibrar" class="btn">
+                <svg class="icono" aria-hidden="true"><use href="/iconos.svg#espadas"/></svg>
+                Librar batalla
+            </button>
+        </div>
+    </dialog>
+
+    <script type="module">
+        import dispatcher from '/CommandDispatcher.js';
+        import SSECommandDispatcher from '/SSECommandDispatcher.js';
+        import BattleShipBoard from '/BattleShipBoard.js';
+
+        const mensaje = document.getElementById('mensaje');
+        const mensajeTexto = document.getElementById('mensajeTexto');
+        const seccionFormulario = document.getElementById('seccionFormulario');
+        const seccionDespliegue = document.getElementById('seccionDespliegue');
+        const selectTactica = document.getElementById('tactica');
+        const contenedorFlota = document.getElementById('flota');
+        const listaBarcos = document.getElementById('listaBarcos');
+        const leyenda = document.getElementById('leyenda');
+        const leyendaCaja = document.getElementById('leyendaCaja');
+        const contenedorTablero = document.getElementById('tablero');
+        const radiosOrientacion = document.querySelectorAll('input[name="orientacion"]');
+        const dialogoLista = document.getElementById('dialogoLista');
+
+        const ICONO_BARCO = '<svg class="icono" aria-hidden="true"><use href="/iconos.svg#barco"/></svg>';
+
+        let barcosPendientes = [];
+
+        function mostrarError(texto) {
+            mensajeTexto.textContent = texto;
+            mensaje.classList.add('visible');
+        }
+
+        function ocultarError() {
+            mensaje.classList.remove('visible');
+        }
+
+        function orientacionElegida() {
+            return document.querySelector('input[name="orientacion"]:checked').value;
+        }
+
+        // "Posicione su [Tipo de barco] en forma [Orientación]" / "Batalla preparada"
+        function actualizarLeyenda() {
+            const preparada = barcosPendientes.length === 0;
+            leyendaCaja.classList.toggle('aviso-exito', preparada);
+            if (preparada) {
+                leyenda.textContent = 'Batalla preparada';
+                return;
+            }
+            const barco = barcosPendientes[0].nombre.toLowerCase();
+            const forma = orientacionElegida() === 'VERTICAL' ? 'vertical' : 'horizontal';
+            leyenda.textContent = `Posicione su ${barco} en forma ${forma}`;
+        }
+
+        // el primer barco de la lista siempre está seleccionado
+        function renderBarcos() {
+            listaBarcos.innerHTML = '';
+            barcosPendientes.forEach(({ nombre }, indice) => {
+                const li = document.createElement('li');
+                li.innerHTML = ICONO_BARCO;
+                li.append(nombre);
+                if (indice === 0) li.classList.add('seleccionado');
+                listaBarcos.appendChild(li);
+            });
+        }
+
+        // densidad = celdas de la flota / celdas del océano (la letra pide < 25%).
+        // es una ayuda visual mientras se completa el formulario; no bloquea el envío
+        const LIMITE_DENSIDAD = 25;
+
+        function numero(id) {
+            const valor = parseInt(document.getElementById(id).value, 10);
+            return Number.isNaN(valor) || valor < 0 ? 0 : valor;
+        }
+
+        function actualizarDensidad() {
+            const celdasOceano = numero('ancho') * numero('alto');
+            const celdasFlota = Array.from(document.querySelectorAll('#flota .cantidad'))
+                .reduce((total, input) => {
+                    const cantidad = parseInt(input.value, 10);
+                    return total + (Number.isNaN(cantidad) || cantidad < 0 ? 0 : cantidad) * Number(input.dataset.tamano);
+                }, 0);
+
+            const porcentaje = celdasOceano > 0 ? celdasFlota * 100 / celdasOceano : 0;
+            const excedida = celdasOceano > 0 && porcentaje >= LIMITE_DENSIDAD;
+
+            document.getElementById('densidadValor').textContent =
+                celdasOceano > 0 ? `${porcentaje.toFixed(1).replace('.0', '')}%` : '—';
+            // la barra representa de 0 a 50%: el límite (25%) queda en la mitad
+            document.getElementById('densidadRelleno').style.width = `${Math.min(porcentaje * 2, 100)}%`;
+            document.getElementById('densidadDetalle').textContent = excedida
+                ? `${celdasFlota} de ${celdasOceano} celdas · supera el límite: debe ser menor al ${LIMITE_DENSIDAD}%`
+                : `${celdasFlota} de ${celdasOceano} celdas · debe ser menor al ${LIMITE_DENSIDAD}%`;
+            document.getElementById('densidad').classList.toggle('excedida', excedida);
+        }
+
+        // celdas propias con barco ("fila,columna"), para que la vista previa sepa qué posiciones son ilegales
+        const celdasOcupadas = new Set();
+        const clave = (v, h) => `${v},${h}`;
+
+        function dibujarCeldas(celdas) {
+            (celdas || []).forEach(c => {
+                tablero.mostrarAguasPropias(c);
+                if (c.valor === 'barco' || c.valor === 'impacto') {
+                    celdasOcupadas.add(clave(c.coordenadaVertical, c.coordenadaHorizontal));
+                }
+            });
+            actualizarPreview();
+        }
+
+        // ---- Vista previa del barco seleccionado ----
+        // Es solo una ayuda visual: replica las reglas de Oceano.desplegarBarco (dentro del océano,
+        // sin superponerse ni tocar otro barco) pero la validación real la sigue haciendo el servidor.
+        // La celda bajo el mouse es la proa: el barco crece hacia la derecha (horizontal)
+        // o hacia arriba (vertical), igual que en el modelo.
+        const CLASES_PREVIEW = ['preview-barco', 'preview-adyacente', 'preview-ilegal', 'preview-conflicto'];
+        let celdaBajoMouse = null; // { v, h } en aguas propias, o null
+
+        function limpiarPreview() {
+            contenedorTablero.querySelectorAll('.preview-barco, .preview-adyacente')
+                .forEach(celda => celda.classList.remove(...CLASES_PREVIEW));
+        }
+
+        function actualizarPreview() {
+            limpiarPreview();
+            if (celdaBajoMouse === null || barcosPendientes.length === 0) return;
+
+            const filas = tablero.rows;
+            const columnas = tablero.columns;
+            const celdas = tablero.ownCells;
+            const tamano = barcosPendientes[0].tamano;
+            const vertical = orientacionElegida() === 'VERTICAL';
+            const dentro = (v, h) => v >= 0 && v < filas && h >= 0 && h < columnas;
+
+            const barco = [];
+            for (let i = 0; i < tamano; i++) {
+                barco.push(vertical
+                    ? { v: celdaBajoMouse.v + i, h: celdaBajoMouse.h }
+                    : { v: celdaBajoMouse.v, h: celdaBajoMouse.h + i });
+            }
+            const clavesBarco = new Set(barco.map(c => clave(c.v, c.h)));
+
+            // anillo de celdas alrededor del barco (incluye diagonales, como validarAdjacentes)
+            const adyacentes = new Map();
+            barco.forEach(({ v, h }) => {
+                for (let dv = -1; dv <= 1; dv++) {
+                    for (let dh = -1; dh <= 1; dh++) {
+                        const k = clave(v + dv, h + dh);
+                        if (!clavesBarco.has(k) && dentro(v + dv, h + dh)) {
+                            adyacentes.set(k, { v: v + dv, h: h + dh });
+                        }
+                    }
+                }
+            });
+
+            const fueraDelOceano = barco.some(c => !dentro(c.v, c.h));
+            const conflictos = [...clavesBarco, ...adyacentes.keys()].filter(k => celdasOcupadas.has(k));
+            const ilegal = fueraDelOceano || conflictos.length > 0;
+
+            const marcar = ({ v, h }, ...clases) => {
+                const celda = celdas[v]?.[h];
+                if (!celda) return;
+                celda.classList.add(...clases);
+                if (ilegal) celda.classList.add('preview-ilegal');
+                if (celdasOcupadas.has(clave(v, h))) celda.classList.add('preview-conflicto');
+            };
+            adyacentes.forEach(c => marcar(c, 'preview-adyacente'));
+            barco.filter(c => dentro(c.v, c.h)).forEach(c => marcar(c, 'preview-barco'));
+        }
+
+        // el componente vuelve a crear las celdas en cada "inicializar": se escucha en el contenedor
+        contenedorTablero.addEventListener('mouseover', (e) => {
+            const celda = e.target.closest('.battle-ship-board-cell');
+            const propio = tablero.paneles.propio?.board;
+            const nueva = celda && propio && propio.contains(celda)
+                ? { v: Number(celda.dataset.coordenadaVertical), h: Number(celda.dataset.coordenadaHorizontal) }
+                : null;
+            if (nueva?.v === celdaBajoMouse?.v && nueva?.h === celdaBajoMouse?.h) return;
+            celdaBajoMouse = nueva;
+            actualizarPreview();
+        });
+
+        contenedorTablero.addEventListener('mouseleave', () => {
+            celdaBajoMouse = null;
+            actualizarPreview();
+        });
+
+        // BattleShipBoard solo envía las coordenadas del clic: la orientación la agrega la vista
+        const dispatcherTablero = {
+            mapFunctions: (handlers, opciones) => dispatcher.mapFunctions(handlers, opciones),
+            submit: (url, datos) => {
+                ocultarError();
+                return dispatcher.submit(url, { ...datos, orientacion: orientacionElegida() });
+            }
+        };
+
+        const tablero = new BattleShipBoard(contenedorTablero, dispatcherTablero,
+            { anchoMaximo: 700, altoMaximo: 420, tamanoFuente: 12, tamanoIcono: 22 });
+
+        // al retomar una batalla en preparación, CU01 redirige con ?idBatalla=
+        const idBatalla = new URLSearchParams(window.location.search).get('idBatalla');
+
+        const view = dispatcher.registerView('nuevaBatalla', {
+            urlInicio: '/nuevaBatalla/vistaConectada',
+            urlCierre: '/nuevaBatalla/vistaDesconectada',
+            dataInicio: idBatalla !== null ? { idBatalla } : {},
+            onError: (status, texto) => mostrarError(`Error ${status}: ${texto}`),
+            onException: (msg) => mostrarError(msg)
+        });
+
+        const URL_SSE = '/nuevaBatalla/registrarSSE';
+
+        // el SSE se abre recién con la respuesta de vistaConectada: así la sesión ya existe y el emitter
+        // queda en la misma sesión que el presentador (ver index.html)
+        let sseConnection = null;
+        function conectarSSE() {
+            if (sseConnection === null) {
+                sseConnection = new SSECommandDispatcher(URL_SSE, dispatcher, cerrar);
+            }
+        }
+
+        view.handler('listaTacticas', (tacticas) => {
+            selectTactica.innerHTML = '';
+            (tacticas || []).forEach((t, indice) => {
+                const opcion = document.createElement('option');
+                opcion.value = indice;
+                opcion.textContent = t.nombre;
+                selectTactica.appendChild(opcion);
+            });
+        });
+
+        view.handler('listaTiposBarco', (tipos) => {
+            contenedorFlota.innerHTML = '';
+            (tipos || []).forEach((t, indice) => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td><label class="tipo-barco" for="cantidad${indice}">${ICONO_BARCO}<span></span></label></td>
+                    <td class="num">${t.tamano}</td>
+                    <td class="num"><input type="number" id="cantidad${indice}" class="control control-numero cantidad" value="0" inputmode="numeric" data-tamano="${t.tamano}"></td>
+                `;
+                fila.querySelector('.tipo-barco span').textContent = t.nombre;
+                contenedorFlota.appendChild(fila);
+            });
+            actualizarDensidad();
+        });
+
+        // llega siempre en vistaConectada, tanto en batalla nueva como al retomar una
+        view.handler('habilitarFormulario', (habilitado) => {
+            conectarSSE();
+            seccionFormulario.classList.toggle('oculto', !habilitado);
+            seccionDespliegue.classList.toggle('oculto', habilitado);
+        });
+
+        view.handler('lugarBatalla', (lugar) => {
+            document.getElementById('lugarBatalla').textContent = lugar;
+        });
+
+        // cada elemento es un TipoBarco: { nombre, tamano }
+        view.handler('barcosPendientes', (tipos) => {
+            barcosPendientes = tipos || [];
+            renderBarcos();
+            actualizarLeyenda();
+            actualizarPreview();
+        });
+
+        // océano completo al retomar la batalla
+        view.handler('tableroPropio', ({ celdas }) => dibujarCeldas(celdas));
+
+        // solo las celdas del barco recién ubicado (llega por SSE)
+        view.handler('barcoUbicado', ({ celdas }) => dibujarCeldas(celdas));
+
+        // el diálogo no bloquea el render, así que el último barco (que llega por SSE) se ve detrás
+        view.handler('confirmarBatallaLista', (lugar) => {
+            document.getElementById('dialogoLugar').textContent = lugar;
+            dialogoLista.showModal();
+        });
+
+        view.handler('redirigir', (pagina) => {
+            window.location.href = pagina;
+        });
+
+        dispatcher.startView(view);
+
+        document.getElementById('formNuevaBatalla').addEventListener('submit', (e) => {
+            e.preventDefault();
+            ocultarError();
+            const cantidades = Array.from(document.querySelectorAll('#flota .cantidad'))
+                .map(input => input.value || 0)
+                .join(',');
+            dispatcher.submit('/nuevaBatalla/crearBatalla', {
+                lugar: document.getElementById('lugar').value,
+                posTactica: selectTactica.value,
+                ancho: document.getElementById('ancho').value,
+                alto: document.getElementById('alto').value,
+                cantidades
+            });
+        });
+
+        // cualquier cambio en tamaño del océano o cantidades recalcula la densidad
+        document.getElementById('formNuevaBatalla').addEventListener('input', actualizarDensidad);
+
+        radiosOrientacion.forEach(r => r.addEventListener('change', () => {
+            actualizarLeyenda();
+            actualizarPreview();
+        }));
+
+        document.getElementById('btnLibrar').addEventListener('click', () => {
+            ocultarError();
+            dispatcher.submit('/nuevaBatalla/librarBatalla');
+        });
+
+        document.querySelectorAll('[data-volver]').forEach(boton => {
+            boton.addEventListener('click', () => dispatcher.submit('/nuevaBatalla/volverASala'));
+        });
+
+        document.getElementById('btnDialogoLibrar').addEventListener('click', () => {
+            dialogoLista.close();
+            dispatcher.submit('/nuevaBatalla/librarBatalla');
+        });
+
+        document.getElementById('btnDialogoVolver').addEventListener('click', () => {
+            dialogoLista.close();
+            dispatcher.submit('/nuevaBatalla/volverASala');
+        });
+
+        document.getElementById('mensajeCerrar').addEventListener('click', ocultarError);
+
+        function cerrar() {
+            mostrarError('Se perdió la conexión con el servidor. Recargue la página.');
+        }
+    </script>
+</body>
+</html>

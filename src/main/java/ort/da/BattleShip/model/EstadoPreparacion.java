@@ -1,5 +1,8 @@
 package ort.da.BattleShip.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 
 public class EstadoPreparacion extends EstadoBatalla {
@@ -23,7 +26,7 @@ public class EstadoPreparacion extends EstadoBatalla {
     protected void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
         Batalla b = getBatalla();
         if (pendienteAsignar.getBarcos().isEmpty()) throw new BattleException("Todos los barcos ya fueron posicionados");
-        
+
         Barco seleccionado = pendienteAsignar.barcoEn(posBarco);
         b.getJugadorHumano().desplegarBarco(seleccionado.getTipo(), coorX, coorY, orientacion);
         pendienteAsignar.remover(seleccionado);
@@ -39,6 +42,16 @@ public class EstadoPreparacion extends EstadoBatalla {
     protected Barco proximoBarco() {
         if (flotaDesplegada()) return null;
         return pendienteAsignar.getBarcos().get(0);
+    }
+
+    @Override
+    protected List<Barco> barcosPendientes() {
+        return new ArrayList<>(pendienteAsignar.getBarcos());
+    }
+
+    @Override
+    protected boolean enPreparacion() {
+        return true;
     }
 
     @Override

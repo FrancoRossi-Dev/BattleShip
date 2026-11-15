@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BattleShip - Librar batalla</title>
+    <link rel="stylesheet" href="/battleship.css">
+</head>
+<body>
+    <header class="banda">
+        <div class="marca">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#ancla"/></svg>
+            <div>
+                <span class="marca-nombre">BattleShip</span>
+                <span class="marca-lema">Supervisa · Planifica · Combate</span>
+            </div>
+        </div>
+        <p class="banda-cita">Cada batalla nos acerca a la victoria</p>
+    </header>
+
+    <!-- CU03: LIBRAR BATALLA -->
+    <main class="panel">
+        <header class="encabezado">
+            <div>
+                <button type="button" id="btnVolver" class="volver">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-izq"/></svg>
+                    Volver a la sala de operaciones
+                </button>
+                <h1 class="titulo">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#timon"/></svg>
+                    <span id="lugarBatalla">-</span>
+                </h1>
+            </div>
+
+            <div class="marcadores">
+                <span class="marcador">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#espadas"/></svg>
+                    <span class="marcador-etiqueta">Ronda</span>
+                    <span class="marcador-valor">#<span id="numeroRonda">-</span></span>
+                </span>
+                <span class="marcador">
+                    <svg class="icono" aria-hidden="true"><use href="/iconos.svg#mira"/></svg>
+                    <span class="marcador-etiqueta">Estado</span>
+                    <span id="estadoBatalla" class="estado" aria-live="polite">-</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="despliegue">
+            <div class="tarjeta oceanos">
+                <div id="tablero" class="tablero"></div>
+            </div>
+
+            <!-- panel de estado: solo informativo, se arma con lo que ya llega para el tablero -->
+            <aside class="lateral" aria-label="Estado de la partida">
+                <div class="tarjeta">
+                    <h2 class="tarjeta-titulo">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#barco"/></svg>
+                        Flota propia
+                        <span id="resumenPropia" class="flota-resumen">-</span>
+                    </h2>
+                    <ul id="flotaPropia" class="flota-estado"></ul>
+                </div>
+
+                <div class="tarjeta">
+                    <h2 class="tarjeta-titulo">
+                        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#mira"/></svg>
+                        Flota enemiga
+                        <span id="resumenEnemiga" class="flota-resumen">-</span>
+                    </h2>
+                    <ul id="flotaEnemiga" class="flota-estado"></ul>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="pie">“Grandes mares forjan grandes estrategas.”</footer>
+
+    <div id="mensaje" class="mensaje" role="alert">
+        <svg class="icono" aria-hidden="true"><use href="/iconos.svg#alerta"/></svg>
+        <span id="mensajeTexto" class="mensaje-texto"></span>
+        <button type="button" id="mensajeCerrar" class="mensaje-cerrar" aria-label="Cerrar mensaje">
+            <svg class="icono" aria-hidden="true"><use href="/iconos.svg#cerrar"/></svg>
+        </button>
+    </div>
+
+    <!-- fin de la batalla: aparece solo cuando termina mientras se está jugando -->
+    <dialog id="dialogoFin" class="dialogo" aria-labelledby="dialogoFinTitulo">
+        <span class="insignia"><svg class="icono" aria-hidden="true"><use id="dialogoFinIcono" href="/iconos.svg#trofeo"/></svg></span>
+        <h2 id="dialogoFinTitulo">-</h2>
+        <p id="dialogoFinTexto">-</p>
+        <div class="acciones">
+            <button type="button" id="btnFinVerTablero" class="btn btn-secundario">Ver tablero</button>
+            <button type="button" id="btnFinVolver" class="btn">
+                <svg class="icono" aria-hidden="true"><use href="/iconos.svg#chevron-izq"/></svg>
+                Volver a la sala de operaciones
+            </button>
+        </div>
+    </dialog>
+
+    <script type="module">
+        import dispatcher from '/CommandDispatcher.js';
+        import SSECommandDispatcher from '/SSECommandDispatcher.js';
+        import BattleShipBoard from '/BattleShipBoard.js';
+
+        const mensaje = document.getElementById('mensaje');
+        const mensajeTexto = document.getElementById('mensajeTexto');
+        const contenedorTablero = document.getElementById('tablero');
+        const etiquetaEstado = document.getElementById('estadoBatalla');
+
+        // estado de la batalla -> variante visual de la etiqueta
+        const CLASE_ESTADO = {
+            'Ganada': 'estado-ganada',
+            'Perdida': 'estado-perdida',
+            'En combate': 'estado-combate',
+            'En preparación': 'estado-preparacion'
+        };
+
+        function mostrarError(texto) {
+            mensajeTexto.textContent = texto;
+            mensaje.classList.add('visible');
+        }
+
+        function ocultarError() {
+            mensaje.classList.remove('visible');
+        }
+
+        // se intercepta el submit del tablero solo para limpiar el error anterior antes de cada disparo
+        const dispatcherTablero = {
+            mapFunctions: (handlers, opciones) => dispatcher.mapFunctions(handlers, opciones),
+            submit: (url, datos) => {
+                ocultarError();
+                return dispatcher.submit(url, datos);
+            }
+        };
+
+        // el tablero escucha por sí mismo: inicializar, mostrarAguasPropias, mostrarAguasEnemigas, bajasEnemigas
+        // mismo tamaño que en CU02: deja lugar al panel de estado a la derecha
+        const tablero = new BattleShipBoard(contenedorTablero, dispatcherTablero,
+            { anchoMaximo: 700, altoMaximo: 420, tamanoFuente: 12, tamanoIcono: 22 });
+
+        // ---- Panel de estado de la partida ----
+        // Se arma solo con lo que el presentador ya manda para el tablero, sin comandos nuevos:
+        // - Flota propia: los barcos nunca se tocan (ni en diagonal), así que cada grupo de celdas
+        //   contiguas con "barco" o "impacto" en aguas propias es un barco. Hundido = todas sus celdas en "impacto".
+        // - Flota enemiga: tiene la misma composición que la propia (el modelo despliega la misma Flota
+        //   al azar); los hundidos salen de "bajasEnemigas" ("{4} {1} {2}"), así que no se revela nada
+        //   que la vista no muestre ya.
+        const celdasPropias = new Map(); // "fila,columna" -> valor
+        const clave = (v, h) => `${v},${h}`;
+        let bajasEnemigas = [];          // tamaños hundidos, en orden cronológico
+
+        function barcosPropios() {
+            const visitadas = new Set();
+            const barcos = [];
+            const esBarco = k => ['barco', 'impacto'].includes(celdasPropias.get(k));
+            celdasPropias.forEach((_, inicio) => {
+                if (visitadas.has(inicio) || !esBarco(inicio)) return;
+                const celdas = [];
+                const pila = [inicio];
+                visitadas.add(inicio);
+                while (pila.length > 0) {
+                    const actual = pila.pop();
+                    celdas.push(actual);
+                    const [v, h] = actual.split(',').map(Number);
+                    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dv, dh]) => {
+                        const vecina = clave(v + dv, h + dh);
+                        if (!visitadas.has(vecina) && esBarco(vecina)) {
+                            visitadas.add(vecina);
+                            pila.push(vecina);
+                        }
+                    });
+                }
+                // de proa a popa (izquierda→derecha u abajo→arriba): una sección por celda, true si fue impactada
+                const secciones = celdas
+                    .map(k => k.split(',').map(Number))
+                    .sort(([v1, h1], [v2, h2]) => v1 - v2 || h1 - h2)
+                    .map(([v, h]) => celdasPropias.get(clave(v, h)) === 'impacto');
+                barcos.push({ tamano: celdas.length, secciones, hundido: secciones.every(Boolean) });
+            });
+            // de mayor a menor, como la lista de barcos del despliegue
+            return barcos.sort((a, b) => b.tamano - a.tamano);
+        }
+
+        function barcosEnemigos(propios) {
+            const pendientes = [...bajasEnemigas];
+            return propios.map(({ tamano }) => {
+                const i = pendientes.indexOf(tamano);
+                if (i >= 0) pendientes.splice(i, 1);
+                return { tamano, hundido: i >= 0 };
+            });
+        }
+
+        function itemBarco({ tamano, hundido, secciones }) {
+            const li = document.createElement('li');
+            li.classList.toggle('hundido', hundido);
+            const casco = document.createElement('span');
+            casco.className = 'casco';
+            casco.setAttribute('aria-hidden', 'true');
+            for (let i = 0; i < tamano; i++) {
+                const seccion = document.createElement('span');
+                // en la flota propia se marcan las secciones dañadas de los barcos que siguen a flote
+                if (!hundido && secciones?.[i]) seccion.className = 'danada';
+                casco.appendChild(seccion);
+            }
+            const texto = document.createElement('span');
+            texto.className = 'flota-texto';
+            texto.textContent = `${tamano} ${tamano === 1 ? 'celda' : 'celdas'} · ${hundido ? 'Hundido' : 'A flote'}`;
+            li.append(casco, texto);
+            return li;
+        }
+
+        function renderFlota(lista, resumen, barcos) {
+            lista.replaceChildren(...barcos.map(itemBarco));
+            const aFlote = barcos.filter(b => !b.hundido).length;
+            resumen.textContent = `${aFlote}/${barcos.length} a flote`;
+        }
+
+        function actualizarPanel() {
+            const propios = barcosPropios();
+            renderFlota(document.getElementById('flotaPropia'), document.getElementById('resumenPropia'), propios);
+            renderFlota(document.getElementById('flotaEnemiga'), document.getElementById('resumenEnemiga'),
+                barcosEnemigos(propios));
+        }
+
+        function registrarCeldaPropia({ coordenadaVertical, coordenadaHorizontal, valor }) {
+            celdasPropias.set(clave(coordenadaVertical, coordenadaHorizontal), valor);
+        }
+
+        // ---- Cartel de fin de batalla ----
+        const dialogoFin = document.getElementById('dialogoFin');
+        let estadoAnterior = null;
+        let rondaActual = '-';
+
+        // solo si la batalla termina mientras se juega: al entrar a ver una batalla ya ganada o perdida
+        // (la letra lo permite) no se muestra
+        function mostrarFin(estado) {
+            const ganada = estado === 'Ganada';
+            const lugar = document.getElementById('lugarBatalla').textContent;
+            dialogoFin.classList.toggle('dialogo-derrota', !ganada);
+            document.getElementById('dialogoFinIcono').setAttribute('href',
+                ganada ? '/iconos.svg#trofeo' : '/iconos.svg#salvavidas');
+            document.getElementById('dialogoFinTitulo').textContent = ganada ? '¡Felicitaciones!' : 'Derrota';
+            document.getElementById('dialogoFinTexto').textContent = ganada
+                ? `Hundiste toda la flota enemiga en ${lugar}. Ronda #${rondaActual}.`
+                : `Tu flota fue hundida en ${lugar}. Se revelan los barcos enemigos que no descubriste.`;
+            dialogoFin.showModal();
+        }
+
+        // CU01 y CU02 redirigen con ?idBatalla=
+        const idBatalla = new URLSearchParams(window.location.search).get('idBatalla');
+
+        const view = dispatcher.registerView('librarBatalla', {
+            urlInicio: '/librarBatalla/vistaConectada',
+            urlCierre: '/librarBatalla/vistaDesconectada',
+            dataInicio: { idBatalla },
+            onError: (status, texto) => mostrarError(`Error ${status}: ${texto}`),
+            onException: (msg) => mostrarError(msg)
+        });
+
+        const URL_SSE = '/librarBatalla/registrarSSE';
+
+        // el SSE se abre recién con la respuesta de vistaConectada: así la sesión ya existe y el emitter
+        // queda en la misma sesión que el presentador (ver index.html)
+        let sseConnection = null;
+        function conectarSSE() {
+            if (sseConnection === null) {
+                sseConnection = new SSECommandDispatcher(URL_SSE, dispatcher, cerrar);
+            }
+        }
+
+        // primer comando de vistaConectada
+        view.handler('lugarBatalla', (lugar) => {
+            conectarSSE();
+            document.getElementById('lugarBatalla').textContent = lugar;
+            document.title = `BattleShip - ${lugar}`;
+        });
+
+        view.handler('numeroRonda', (ronda) => {
+            rondaActual = ronda;
+            document.getElementById('numeroRonda').textContent = ronda;
+        });
+
+        // en batallaFinalizada el estado llega antes que numeroRonda: el cartel espera al resto de los comandos
+        view.handler('estadoBatalla', (estado) => {
+            etiquetaEstado.className = `estado ${CLASE_ESTADO[estado] || ''}`;
+            etiquetaEstado.textContent = estado;
+            const termino = estadoAnterior === 'En combate' && (estado === 'Ganada' || estado === 'Perdida');
+            estadoAnterior = estado;
+            if (termino) setTimeout(() => mostrarFin(estado));
+        });
+
+        // océanos completos: al entrar, y el enemigo de nuevo si la batalla se perdió (barcos revelados)
+        view.handler('tableroPropio', ({ celdas }) => {
+            (celdas || []).forEach(c => {
+                tablero.mostrarAguasPropias(c);
+                registrarCeldaPropia(c);
+            });
+            actualizarPanel();
+        });
+
+        // BattleShipBoard también escucha estos comandos; acá solo se actualiza el panel
+        view.handler('mostrarAguasPropias', (celda) => {
+            registrarCeldaPropia(celda);
+            actualizarPanel();
+        });
+
+        view.handler('bajasEnemigas', (bajas) => {
+            bajasEnemigas = (bajas || '').match(/\d+/g)?.map(Number) || [];
+            actualizarPanel();
+        });
+
+        view.handler('tableroEnemigo', ({ celdas }) => {
+            (celdas || []).forEach(c => tablero.mostrarAguasEnemigas(c));
+        });
+
+        view.handler('redirigir', (pagina) => {
+            window.location.href = pagina;
+        });
+
+        dispatcher.startView(view);
+
+        document.getElementById('btnVolver').addEventListener('click', () => {
+            dispatcher.submit('/librarBatalla/volverASala');
+        });
+
+        document.getElementById('btnFinVolver').addEventListener('click', () => {
+            dialogoFin.close();
+            dispatcher.submit('/librarBatalla/volverASala');
+        });
+
+        // cierra el cartel para ver el tablero final (en derrota, con los barcos enemigos revelados)
+        document.getElementById('btnFinVerTablero').addEventListener('click', () => dialogoFin.close());
+
+        document.getElementById('mensajeCerrar').addEventListener('click', ocultarError);
+
+        function cerrar() {
+            mostrarError('Se perdió la conexión con el servidor. Recargue la página.');
+        }
+    </script>
+</body>
+</html>

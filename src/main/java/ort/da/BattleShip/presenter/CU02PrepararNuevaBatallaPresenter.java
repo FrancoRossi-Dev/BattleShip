@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import ort.da.BattleShip.dto.BatallaDto;
-import ort.da.BattleShip.dto.CeldaDto;
+import ort.da.BattleShip.dto.BarcoUbicadoDto;
+import ort.da.BattleShip.dto.InicializarTableroDto;
 import ort.da.BattleShip.dto.TableroDespliegueDto;
+import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Facade;
@@ -75,11 +76,16 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         // si el usuario no ingresa una id, se crea una nueva
         if (idBatalla == null) {
             batalla = null;
-            return Commands.create(habilitarFormulario(true));
+            return Commands.create(listaTacticas(), listaTiposBarco(), habilitarFormulario(true));
         }
         // si ingresa una id al conectarse a este endpoint, se retoma el proceso de creción
         batalla = f.getBatalla(idBatalla);
-        return Commands.create(mostrarBatallaEnPreparacion(), HabilitarDesplegarFlota(true), leyendaAccion());
+        batalla.agregarObservador(this);
+
+        Commands comandos = Commands.create(habilitarFormulario(false), lugarBatalla(), inicializarTablero(),
+                mostrarTableroPropio(), barcosPendientes());
+        if (batalla.flotaDesplegada()) comandos.add(confirmarBatallaLista());
+        return comandos;
     }
     /*
      * 3. Ingresa los datos requeridos e indica la opción Continuar.
@@ -132,23 +138,26 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/crearBatalla")
     public Commands crearBatalla(
-            @RequestParam String lugarCombate,
-            @RequestParam int tacticaPos,
-            @RequestParam int nroCeldasX,
-            @RequestParam int nroCeldasY,
-            @RequestParam int[] flotaConfig) throws BattleException {
+            @RequestParam(defaultValue = "") String lugar,
+            @RequestParam int posTactica,
+            @RequestParam int ancho,
+            @RequestParam int alto,
+            // una cantidad por tipo de barco, en el orden de listaTiposBarco ("1,0,2,...")
+            @RequestParam int[] cantidades) throws BattleException {
 
         // crea batalla a partir de los argumentos
-        Batalla nueva = new Batalla(lugarCombate, tacticaEn(tacticaPos), nroCeldasX, nroCeldasY,
-                listaDeTiposDeBarco, flotaConfig);
+        Batalla nueva = new Batalla(lugar, tacticaEn(posTactica), ancho, alto,
+                listaDeTiposDeBarco, cantidades);
 
         // envía a la fachada para agregarla a la lista
         f.agregar(nueva);
 
         // persistencia
         batalla = nueva;
+        batalla.agregarObservador(this);
 
-        return Commands.create(HabilitarDesplegarFlota(true), habilitarFormulario(false), leyendaAccion());
+        return Commands.create(habilitarFormulario(false), lugarBatalla(), inicializarTablero(),
+                barcosPendientes());
     }
 
     /*
@@ -175,24 +184,33 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
      * ubicar barcos en aguas enemigas”
      */
 
-
-
     @PostMapping("/desplegarFlota")
     public Commands desplegarFlota(
             @RequestParam(defaultValue = "0") int indiceBarco,
-            @RequestParam int coorX,
-            @RequestParam int coorY,
+            // nombres que envía BattleShipBoard al hacer clic: vertical = fila (Y), horizontal = columna (X)
+            @RequestParam int coordenadaVertical,
+            @RequestParam int coordenadaHorizontal,
             @RequestParam String orientacion) throws BattleException {
 
-        if (batalla == null)
-            throw new BattleException("No hay una batalla en preparación");
+        if (batalla == null) return Commands.create(CommonCommands.redirigir("index.html"));
 
-        batalla.desplegarBarco(indiceBarco, coorX, coorY, orientacion);
+        // el barco ubicado llega a la vista solo por SSE, desde actualizar() (evento BARCO_DESPLEGADO).
+        // preguntar si es necesario devolver tambien aca
+        batalla.desplegarBarco(indiceBarco, coordenadaHorizontal, coordenadaVertical, orientacion);
         this.orientacion = orientacion;
 
-        // respuesta directa: el clic sale de esta misma vista
-        return Commands.create(actualizarTablero()).add(leyendaAccion());
+        // la leyenda de acción la arma el cliente; acá solo se avisa cuando no quedan barcos por ubicar
+        // con la flota completa el tablero sigue habilitado: un nuevo clic lo rechaza el modelo
+        // ("Todos los barcos ya fueron posicionados")
+        if (batalla.flotaDesplegada()) {
+            return Commands.create(confirmarBatallaLista());
+        }
+
+        return Commands.create();
     }
+
+
+
 
     // verificar si es necesario
     @PostMapping("/aguasEnemigas")
@@ -207,7 +225,7 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/volverASala")
     public Commands volverASala() {
-        return Commands.create(CommonCommands.Redirection("SalaOperaciones.html"));
+        return Commands.create(CommonCommands.redirigir("index.html"));
     }
 
     /*
@@ -225,9 +243,17 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
             throw new BattleException("No hay una batalla en preparación");
 
         batalla.librarBatalla();
-        return Commands.create(CommonCommands.Redirection("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
+        return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
     }
 
+    @PostMapping("/vistaDesconectada")
+    public void vistaDesconectada() {
+        if (batalla != null) {
+            batalla.quitarObservador(this);
+        }
+    }
+
+    // funcion helper para coordinar posicion de tacticas
     private TacticaTipo tacticaEn(int pos) throws BattleException {
         if (pos < 0 || pos >= listaDeTacticas.size())
             throw new BattleException("Táctica desconocida");
@@ -250,41 +276,65 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
      * El océano del enemigo es establecido con una distribución aleatoria, pero con las mismas reglas.
      */
 
+    // COMMANDS
+
+    // como en Agenda (tiposEstado, listaTipoContactos), las listas de tipos van directo;
+    // la vista usa la posición de cada uno como valor del formulario
+    private Command listaTacticas() {
+        return new Command("listaTacticas", listaDeTacticas);
+    }
+
+    private Command listaTiposBarco() {
+        return new Command("listaTiposBarco", listaDeTiposDeBarco);
+    }
+
     private Command habilitarFormulario(boolean h) {
-        return new Command("Habilitar formulario", h);
+        return new Command("habilitarFormulario", h);
     }
 
-    private Command mostrarBatallaEnPreparacion() {
-        BatallaDto dto = new BatallaDto(batalla);
-        return new Command("batalla", dto);
+    private Command lugarBatalla() {
+        return new Command("lugarBatalla", batalla.getLugar());
     }
 
-    // el tablero dibuja de a una celda por comando
-    private Command[] actualizarTablero() {
-        List<CeldaDto> celdas = new TableroDespliegueDto(batalla).getCeldas();
-        Command[] comandos = new Command[celdas.size()];
-        for (int i = 0; i < celdas.size(); i++) {
-            comandos[i] = new Command("mostrarAguasPropias", celdas.get(i));
+    // aguas propias -> desplegarFlota; aguas enemigas -> error "No puede ubicar barcos en aguas enemigas"
+    private Command inicializarTablero() {
+        return new Command("inicializar", new InicializarTableroDto(batalla.getAlto(), batalla.getAncho(),
+                "/nuevaBatalla/desplegarFlota", "/nuevaBatalla/aguasEnemigas"));
+    }
+
+    // tipos de los barcos que faltan ubicar, de mayor a menor (repetidos si hay más de uno del tipo);
+    // la vista marca el primero como seleccionado, arma la leyenda de acción y usa el tamaño
+    // para la vista previa del barco sobre el océano. Como listaTiposBarco, los tipos van directo
+    private Command barcosPendientes() {
+        List<TipoBarco> tipos = new ArrayList<>();
+        for (Barco b : batalla.barcosPendientes()) {
+            tipos.add(b.getTipo());
         }
-        return comandos;
+        return new Command("barcosPendientes", tipos);
     }
 
-    private Command HabilitarDesplegarFlota(boolean h) {
-        return new Command("comenzar despliegue de flota", h);
+    // al retomar una batalla: océano propio completo, la vista lo recorre celda por celda
+    private Command mostrarTableroPropio() {
+        return new Command("tableroPropio", new TableroDespliegueDto(batalla));
     }
 
-    // "Posicione su [Tipo de barco] en forma [Orientación]" o "Batalla preparada" si no quedan barcos
-    private Command leyendaAccion() {
-        if (batalla.flotaDesplegada())
-            return new Command("leyendaAccion", "Batalla preparada");
-
-        String tipo = batalla.proximoBarco().getTipo().getNombre().toLowerCase();
-        return new Command("leyendaAccion",
-                "Posicione su " + tipo + " en forma " + orientacion.toLowerCase());
+    // tras cada clic: solo las celdas del barco recién ubicado
+    private Command mostrarBarcoUbicado(Barco b) {
+        return new Command("barcoUbicado", new BarcoUbicadoDto(b));
     }
 
-    // CU02 responde directo a cada clic, no necesita reaccionar a eventos del modelo
+    // el diálogo solo necesita el lugar; como en Agenda, un dato único va directo sin DTO.
+    // la vista pregunta y llama a /librarBatalla o /volverASala
+    private Command confirmarBatallaLista() {
+        return new Command("confirmarBatallaLista", batalla.getLugar());
+    }
+
     @Override
     public void actualizar(Observable origen, Object evento) {
+        if(evento.equals(Batalla.events.BARCO_DESPLEGADO)) {
+            Barco b = ((Batalla) origen).getUltimoBarcoColocado();
+            conexionNavegador.enviarJSON(Commands.create(mostrarBarcoUbicado(b), barcosPendientes()));
+        }
     }
 }
+

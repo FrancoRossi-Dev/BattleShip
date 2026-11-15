@@ -22,6 +22,10 @@ public abstract class Jugador {
         return oceano.getCeldas();
     }
 
+    public List<Barco> getBarcosHundidos() {
+        return oceano.getBarcosHundidos();
+    }
+
     public boolean flotaHundida() {
         return oceano.flotaHundida();
     }
@@ -37,4 +41,10 @@ public abstract class Jugador {
     protected void vaciarOceano() {
         oceano = new Oceano(oceano.getAncho(), oceano.getAlto());
     }
+
+    public Barco getUltimoBarcoDesplegado() {
+        return oceano.getUltimoBarcoDesplegado();
+    }
+
+
 }

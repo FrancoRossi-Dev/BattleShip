@@ -39,6 +39,8 @@ public class Facade extends Observable implements Observador {
     public void agregar(Batalla batalla) throws BattleException {
         sistemaBatalla.agregar(batalla);
         batalla.agregarObservador(this);
+        // la batalla nueva aparece en la sala de operaciones de todas las sesiones
+        avisar(Facade.events.ACTUALIZACION_DE_LISTA);
     }
 
     public List<Batalla> getBatallas() {

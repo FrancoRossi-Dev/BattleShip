@@ -73,7 +73,9 @@ public class Batalla extends Observable {
         estado.librarBatalla();
     }
 
-    public void jugarRonda(int coorX, int coorY) throws BattleException {
+    // synchronized: si dos sesiones disparan a la vez sobre la misma batalla, la ronda es atómica
+    // y gana el primer disparo (el segundo encuentra la celda ya disparada o la batalla finalizada)
+    public synchronized void jugarRonda(int coorX, int coorY) throws BattleException {
         estado.jugarRonda(coorX, coorY);
     }
 
@@ -97,8 +99,38 @@ public class Batalla extends Observable {
         return estado.proximoBarco();
     }
 
+    // barcos que faltan ubicar, de mayor a menor; vacía fuera de preparación
+    public List<Barco> barcosPendientes() {
+        return estado.barcosPendientes();
+    }
+
+    public boolean enPreparacion() {
+        return estado.enPreparacion();
+    }
+
+    public Ronda ultimaRonda() {
+        if (rondas.isEmpty()) return null;
+        return rondas.getLast();
+    }
+
     public List<Celda> celdasPropias() {
         return jugadorHumano.getCeldas();
+    }
+
+    // quien las muestre decide si oculta los barcos no descubiertos (Celda.valor(mostrarBarcos))
+    public List<Celda> celdasEnemigas() {
+        return jugadorMaquina.getCeldas();
+    }
+
+    // barcos enemigos hundidos, en el orden en que se hundieron
+    public List<Barco> bajasEnemigas() {
+        return jugadorMaquina.getBarcosHundidos();
+    }
+
+    // empieza en 1 y suma cada vez que le toca al humano; finalizada, queda en la última jugada
+    public int numeroRonda() {
+        if (esFinalizada()) return rondas.size();
+        return rondas.size() + 1;
     }
 
     // la batalla ejecuta los turnos por experto, el estado los llama.
@@ -167,5 +199,9 @@ public class Batalla extends Observable {
 
     public boolean esFinalizada() {
         return this.estado.esFinalizada();
+    }
+
+    public Barco getUltimoBarcoColocado() {
+        return this.jugadorHumano.getUltimoBarcoDesplegado();
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ort.da.BattleShip.dto.TotalBatallasDto;
 import ort.da.BattleShip.model.Batalla;
+import ort.da.BattleShip.model.BattleException;
 import ort.da.BattleShip.model.Facade;
 import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/SalaOperaciones")
+@RequestMapping("/salaOperaciones")
 @Scope("session")
 public class CU01SalaOperacionesPresenter implements Observador {
 
@@ -36,7 +37,7 @@ public class CU01SalaOperacionesPresenter implements Observador {
     }
 
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter completar() 
+    public SseEmitter registrarSSE()
     {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
@@ -60,12 +61,17 @@ public class CU01SalaOperacionesPresenter implements Observador {
     @PostMapping("/nuevaBatalla")
     public Commands nuevaBatalla() {
         // redirige al endpoint de CU02
-        return Commands.create(CommonCommands.Redirection("nuevaBatalla.html"));
+        return Commands.create(CommonCommands.redirigir("nuevaBatalla.html"));
     }
-    
+
+    // "Entrar": en preparación se continúa el despliegue (CU02); en combate o finalizada, CU03
     @PostMapping("/reanudarBatalla")
-    public Commands reanudarBatalla(@RequestParam int idBatalla) {
-        return Commands.create(CommonCommands.Redirection("librarBatalla.html?idBatalla=" + idBatalla));
+    public Commands reanudarBatalla(@RequestParam int idBatalla) throws BattleException {
+        Batalla b = f.getBatalla(idBatalla);
+        if (b.enPreparacion()) {
+            return Commands.create(CommonCommands.redirigir("nuevaBatalla.html?idBatalla=" + idBatalla));
+        }
+        return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + idBatalla));
     }
     
     @PostMapping("/vistaDesconectada")
