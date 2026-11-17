@@ -13,7 +13,7 @@ public class Facade extends Observable implements Observador {
     private final SistemaBarcos sistemaBarcos = new SistemaBarcos();
     private final SistemaTacticas sistemaTacticas = new SistemaTacticas();
 
-    public enum events {
+    public enum Eventos {
         ACTUALIZACION_DE_LISTA;
     }
 
@@ -40,7 +40,7 @@ public class Facade extends Observable implements Observador {
         sistemaBatalla.agregar(batalla);
         batalla.agregarObservador(this);
         // la batalla nueva aparece en la sala de operaciones de todas las sesiones
-        avisar(Facade.events.ACTUALIZACION_DE_LISTA);
+        avisar(Facade.Eventos.ACTUALIZACION_DE_LISTA);
     }
 
     public List<Batalla> getBatallas() {
@@ -79,11 +79,9 @@ public class Facade extends Observable implements Observador {
 
     @Override
     public void actualizar(Observable origen, Object evento) {
-        if (evento.equals(Batalla.events.CAMBIO_ESTADO)) {
-            avisar(Facade.events.ACTUALIZACION_DE_LISTA);
-        }
-        if (evento.equals(Batalla.events.RONDA_FINALIZADA)) {
-            avisar(Facade.events.ACTUALIZACION_DE_LISTA);
+        // la sala muestra estado e integridad de las flotas: cambian al cambiar de estado o al jugarse una ronda
+        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO) || evento.equals(Batalla.Eventos.RONDA_FINALIZADA)) {
+            avisar(Facade.Eventos.ACTUALIZACION_DE_LISTA);
         }
     }
 

@@ -9,9 +9,6 @@ public abstract class EstadoBatalla {
     @Getter
     private Batalla batalla;
 
-    @Getter 
-    private String resultado = null;
-
     public EstadoBatalla(Batalla b) {
         this.batalla = b;
     }

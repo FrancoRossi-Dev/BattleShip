@@ -42,7 +42,7 @@ public class CU01SalaOperacionesPresenter implements Observador {
     
     @Override 
     public void actualizar(Observable origen, Object evento) {
-        if (Facade.events.ACTUALIZACION_DE_LISTA.equals(evento)) {
+        if (Facade.Eventos.ACTUALIZACION_DE_LISTA.equals(evento)) {
             conexionNavegador.enviarJSON(Commands.create(listaBatallas()));
         }
     }

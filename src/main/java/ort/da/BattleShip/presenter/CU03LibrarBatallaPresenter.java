@@ -257,10 +257,10 @@ Flujos alternativos
 
     @Override
     public void actualizar(Observable origen, Object evento) {
-        if (evento.equals(Batalla.events.RONDA_FINALIZADA)) {
+        if (evento.equals(Batalla.Eventos.RONDA_FINALIZADA)) {
             conexionNavegador.enviarJSON(rondaJugada());
         }
-        if (evento.equals(Batalla.events.CAMBIO_ESTADO)) {
+        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
             conexionNavegador.enviarJSON(batallaFinalizada());
         }
     }

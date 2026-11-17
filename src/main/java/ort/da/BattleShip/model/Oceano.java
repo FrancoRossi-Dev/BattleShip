@@ -41,14 +41,6 @@ public class Oceano {
         return barcosVivos.isEmpty();
     }
 
-    public List<Barco> getBarcos() {
-        List<Barco> bList = new ArrayList<>();
-        // concatena ambas listas
-        for(Barco b : barcosVivos) bList.add(b);
-        for(Barco b : barcosHundidos) bList.add(b);
-        return bList;
-    }
-
     // el océano es el experto en sus celdas: las expone recorridas fila por fila
     public List<Celda> getCeldas() {
         List<Celda> lista = new ArrayList<>();

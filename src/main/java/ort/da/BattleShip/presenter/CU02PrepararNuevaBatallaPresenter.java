@@ -324,7 +324,7 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @Override
     public void actualizar(Observable origen, Object evento) {
-        if(evento.equals(Batalla.events.BARCO_DESPLEGADO)) {
+        if(evento.equals(Batalla.Eventos.BARCO_DESPLEGADO)) {
             Barco b = ((Batalla) origen).getUltimoBarcoColocado();
             conexionNavegador.enviarJSON(Commands.create(mostrarBarcoUbicado(b), barcosPendientes()));
         }
