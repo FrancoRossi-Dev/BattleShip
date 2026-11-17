@@ -25,7 +25,7 @@ public class EstadoEnCombate extends EstadoBatalla {
 
     
     @Override
-    protected void desplegarBarco(int indiceBarco, int coorX, int coorY, String orientacion) throws BattleException {
+    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
         throw new BattleException("La batalla ya comenzó");
     }
 

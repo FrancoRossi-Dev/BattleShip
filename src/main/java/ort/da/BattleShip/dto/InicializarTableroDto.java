@@ -1,6 +1,7 @@
 package ort.da.BattleShip.dto;
 
 import lombok.Getter;
+import ort.da.BattleShip.model.Batalla;
 
 // formato del comando "inicializar" de BattleShipBoard (igual al InicializarDto del demo del docente).
 // Un escuchador null deja ese océano en solo lectura.
@@ -15,10 +16,9 @@ public class InicializarTableroDto {
     @Getter
     private String escuchadorOceanoEnemigo;
 
-    public InicializarTableroDto(int numeroCeldasVerticales, int numeroCeldasHorizontales,
-            String escuchadorOceanoPropio, String escuchadorOceanoEnemigo) {
-        this.numeroCeldasVerticales = numeroCeldasVerticales;
-        this.numeroCeldasHorizontales = numeroCeldasHorizontales;
+    public InicializarTableroDto(Batalla b, String escuchadorOceanoPropio, String escuchadorOceanoEnemigo) {
+        this.numeroCeldasVerticales = b.getAlto();
+        this.numeroCeldasHorizontales = b.getAncho();
         this.escuchadorOceanoPropio = escuchadorOceanoPropio;
         this.escuchadorOceanoEnemigo = escuchadorOceanoEnemigo;
     }

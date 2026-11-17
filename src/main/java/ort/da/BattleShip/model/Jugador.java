@@ -13,8 +13,8 @@ public abstract class Jugador {
         this.oceano = new Oceano(ancho, alto);
     }
 
-    public int partesSanas(Flota flota) {
-        return flota.tamanoTotal() - oceano.partesImpactadas();
+    public int partesImpactadas() {
+        return oceano.partesImpactadas();
     }
 
 

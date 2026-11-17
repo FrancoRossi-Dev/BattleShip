@@ -1,12 +1,14 @@
 package ort.da.BattleShip.model;
 
+// Strategy: táctica de juego de la máquina. JugadorMaquina tiene una sola durante toda la batalla
 public interface TacticaInterfaz {
 
-    public String GetNombre();
-    public Celda ElegirCelda(HistorialDisparos historial);
+    public String getNombre();
 
-    // cada tactica decide, segun el resultado de su ultimo disparo,
-    // que tactica usa la maquina en el proximo turno (puede ser ella misma)
-    public TacticaInterfaz siguienteTactica(Disparo ultimoDisparo);
+    public Celda elegirCelda(HistorialDisparos historial);
+
+    // la máquina avisa el resultado de cada disparo; las tácticas que no dependen
+    // del resultado (secuencial, espiral) no hacen nada
+    public void registrarDisparo(Disparo disparo);
 
 }

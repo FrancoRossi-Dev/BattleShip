@@ -10,12 +10,10 @@ public class TacticaFactory {
             case TacticaTipo.ESPIRAL:
                 return new TacticaEspiral();
             case TacticaTipo.CAZA_Y_ATAQUE:
-                // empieza cazando; pasa a ataque y vuelve sola via siguienteTactica
-                return new TacticaCaza();
+                return new TacticaCazaYAtaque();
             case TacticaTipo.SECUENCIAL:
+            default:
                 return new TacticaSecuencial();
-            default: 
-                return null;
         }
 
     }

@@ -51,12 +51,6 @@ public class Flota {
         return total;
     }
 
-    public Barco barcoEn(int indice) throws BattleException {
-        if (indice < 0 || indice >= barcos.size())
-            throw new BattleException("Barco seleccionado inválido");
-        return barcos.get(indice);
-    }
-
     public void remover(Barco b) {
         barcos.remove(b);
     }

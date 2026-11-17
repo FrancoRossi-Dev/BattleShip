@@ -4,15 +4,15 @@ package ort.da.BattleShip.model;
 public class TacticaSecuencial implements TacticaInterfaz {
 
     @Override
-    public String GetNombre() {
-        return "Táctica Secuencial";
+    public String getNombre() {
+        return TacticaTipo.SECUENCIAL;
     }
 
     // como no saltea celdas, la cantidad de disparos alcanza para saber la posicion:
     // el disparo numero n cae en la celda n si se numeran las celdas fila por fila.
     // ej. con ancho 10: disparo 0 -> (0,0), 9 -> (0,9), 10 -> (1,0), 23 -> (2,3)
     @Override
-    public Celda ElegirCelda(HistorialDisparos historial) {
+    public Celda elegirCelda(HistorialDisparos historial) {
         int disparos = historial.cantidad();
         int ancho = historial.getAncho();
         // cada fila completa son "ancho" disparos: el cociente da la fila
@@ -22,8 +22,7 @@ public class TacticaSecuencial implements TacticaInterfaz {
 
     // nunca cambia: sigue recorriendo en orden toda la partida
     @Override
-    public TacticaInterfaz siguienteTactica(Disparo ultimoDisparo) {
-        return this;
+    public void registrarDisparo(Disparo disparo) {
     }
 
 }

@@ -32,7 +32,7 @@ public class EstadoFinalizada extends EstadoBatalla {
     }
 
     @Override
-    protected void desplegarBarco(int indiceBarco, int coorX, int coorY, String orientacion) throws BattleException {
+    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
         throw new BattleException("La batalla ya está finalizada");
     }
 
@@ -54,6 +54,11 @@ public class EstadoFinalizada extends EstadoBatalla {
     @Override
     protected boolean esFinalizada() {
         return true;
+    }
+
+    @Override
+    protected boolean revelaBarcosEnemigos() {
+        return resultado.equals(PERDIDA);
     }
 
 }

@@ -46,7 +46,7 @@ public class DatosPrueba {
             Batalla trafalgar = new Batalla("Trafalgar", secuencial, 10, 10,
                     List.of(acorazado, submarino, destructor), new int[] {1, 1, 1});
             facade.agregar(trafalgar);
-            trafalgar.desplegarBarco(0, 2, 3, V);
+            trafalgar.desplegarBarco(2, 3, V);
 
             // 3. En combate, con tres rondas jugadas (un impacto y dos aguas del humano)
             Batalla midway = new Batalla("Midway", cazaYAtaque, 10, 10,
@@ -83,7 +83,7 @@ public class DatosPrueba {
 
     private static void desplegar(Batalla b, Object[][] posiciones) throws BattleException {
         for (Object[] p : posiciones) {
-            b.desplegarBarco(0, (int) p[0], (int) p[1], (String) p[2]);
+            b.desplegarBarco((int) p[0], (int) p[1], (String) p[2]);
         }
     }
 

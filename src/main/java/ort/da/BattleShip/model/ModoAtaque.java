@@ -3,13 +3,17 @@ package ort.da.BattleShip.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TacticaAtaque implements TacticaInterfaz {
-    // esta tactica se usa mientras haya un barco tocado sin hundir
+public class ModoAtaque extends ModoCazaYAtaque {
+    // este modo se usa mientras haya un barco tocado sin hundir
     // precondicion: el historial tiene al menos un impacto sin hundir
 
+    public ModoAtaque(TacticaCazaYAtaque tactica) {
+        super(tactica);
+    }
+
     @Override
-    public String GetNombre() {
-        return "Táctica de Ataque";
+    public String getNombre() {
+        return "Ataque";
     }
 
     // pasos:
@@ -18,7 +22,7 @@ public class TacticaAtaque implements TacticaInterfaz {
     //    con dos o mas se conoce el eje: candidatas = los 2 extremos libres de la linea
     // 3. se elige una candidata al azar
     @Override
-    public Celda ElegirCelda(HistorialDisparos historial) {
+    public Celda elegirCelda(HistorialDisparos historial) {
         List<Celda> impactos = impactosSinHundir(historial);
         List<Celda> candidatas = impactos.size() == 1
                 ? vecinosLibres(impactos.get(0), historial)
@@ -84,9 +88,10 @@ public class TacticaAtaque implements TacticaInterfaz {
     // si fue agua o un impacto sin hundir, se sigue atacando el mismo barco
     // (los barcos no se tocan, asi que al hundirlo no queda otro tocado pendiente)
     @Override
-    public TacticaInterfaz siguienteTactica(Disparo ultimoDisparo) {
-        if (ultimoDisparo.hundioBarco()) return new TacticaCaza();
-        return this;
+    public void registrarDisparo(Disparo disparo) {
+        if (disparo.hundioBarco()) {
+            getTactica().cambiarModo(new ModoCaza(getTactica()));
+        }
     }
 
     // estaLibre descarta celdas fuera del oceano o ya disparadas

@@ -204,11 +204,12 @@
 
         view.handler('listaBatallas', (total) => {
             conectarSSE();
-            const cantidad = (total.batallas || []).length;
+            // el porcentaje es ganadas / finalizadas (ganadas + perdidas)
+            const finalizadas = total.ganadas + total.perdidas;
             document.getElementById('ganadas').textContent = total.ganadas;
             document.getElementById('perdidas').textContent = total.perdidas;
             document.getElementById('porcentajeExito').textContent = total.porcentajeExito;
-            document.getElementById('detalleExito').textContent = `(${total.ganadas} de ${cantidad} batallas)`;
+            document.getElementById('detalleExito').textContent = `(${total.ganadas} de ${finalizadas} batallas)`;
             renderBatallas(total.batallas);
         });
 

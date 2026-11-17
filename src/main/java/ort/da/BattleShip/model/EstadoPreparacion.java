@@ -23,11 +23,11 @@ public class EstadoPreparacion extends EstadoBatalla {
 
 
     @Override
-    protected void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
+    protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
         Batalla b = getBatalla();
-        if (pendienteAsignar.getBarcos().isEmpty()) throw new BattleException("Todos los barcos ya fueron posicionados");
+        if (flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
 
-        Barco seleccionado = pendienteAsignar.barcoEn(posBarco);
+        Barco seleccionado = proximoBarco();
         b.getJugadorHumano().desplegarBarco(seleccionado.getTipo(), coorX, coorY, orientacion);
         pendienteAsignar.remover(seleccionado);
     }

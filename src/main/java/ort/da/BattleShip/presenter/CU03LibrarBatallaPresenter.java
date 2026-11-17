@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ort.da.BattleShip.dto.CeldaDto;
+import ort.da.BattleShip.dto.CeldasDto;
 import ort.da.BattleShip.dto.InicializarTableroDto;
-import ort.da.BattleShip.dto.TableroCombateDto;
 import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
@@ -202,7 +202,7 @@ Flujos alternativos
     }
 
     private Command estadoBatalla() {
-        return new Command("estadoBatalla", batallaActual.getEstado().getNombre());
+        return new Command("estadoBatalla", batallaActual.nombreEstado());
     }
 
     private Command numeroRonda() {
@@ -211,18 +211,18 @@ Flujos alternativos
 
     // aguas enemigas -> jugarRonda; aguas propias -> error "No puede disparar a sus propias aguas"
     private Command inicializarTablero() {
-        return new Command("inicializar", new InicializarTableroDto(batallaActual.getAlto(), batallaActual.getAncho(),
+        return new Command("inicializar", new InicializarTableroDto(batallaActual,
                 "/librarBatalla/aguasPropias", "/librarBatalla/jugarRonda"));
     }
 
     private Command tableroPropio() {
-        return new Command("tableroPropio", new TableroCombateDto(batallaActual.celdasPropias(), true));
+        return new Command("tableroPropio", new CeldasDto(batallaActual.celdasPropias(), true));
     }
 
     // si la batalla se perdió se revelan los barcos enemigos no descubiertos
     private Command tableroEnemigo() {
         return new Command("tableroEnemigo",
-                new TableroCombateDto(batallaActual.celdasEnemigas(), batallaActual.isPerdida()));
+                new CeldasDto(batallaActual.celdasEnemigas(), batallaActual.revelaBarcosEnemigos()));
     }
 
     // formato pedido por la letra: "{4} {1} {2}", en el orden en que se hundieron.
@@ -251,7 +251,7 @@ Flujos alternativos
     // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda)
     private Commands batallaFinalizada() {
         Commands comandos = Commands.create(estadoBatalla(), numeroRonda());
-        if (batallaActual.isPerdida()) comandos.add(tableroEnemigo());
+        if (batallaActual.revelaBarcosEnemigos()) comandos.add(tableroEnemigo());
         return comandos;
     }
 

@@ -11,8 +11,6 @@ import ort.da.BattleShip.observador.ConexionNavegador;
 import ort.da.BattleShip.observador.Observable;
 import ort.da.BattleShip.observador.Observador;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class CU01SalaOperacionesPresenter implements Observador {
 
     private Facade f;
-    private List<Batalla> batallas;
 
 
     private ConexionNavegador conexionNavegador;
@@ -46,14 +43,12 @@ public class CU01SalaOperacionesPresenter implements Observador {
     @Override 
     public void actualizar(Observable origen, Object evento) {
         if (Facade.events.ACTUALIZACION_DE_LISTA.equals(evento)) {
-            this.batallas = f.getBatallas();
             conexionNavegador.enviarJSON(Commands.create(listaBatallas()));
         }
     }
 
     @PostMapping("/vistaConectada")
     public Commands vistaConectada() {
-        batallas = f.getBatallas();
         f.agregarObservador(this);
         return Commands.create(listaBatallas());
     }
@@ -81,7 +76,7 @@ public class CU01SalaOperacionesPresenter implements Observador {
     
     // COMMANDS
     private Command listaBatallas() {
-        return new Command("listaBatallas", new TotalBatallasDto(batallas,
+        return new Command("listaBatallas", new TotalBatallasDto(f.getBatallas(),
                 f.cantidadGanadas(), f.cantidadPerdidas(), f.porcentajeExito()));
     }
     

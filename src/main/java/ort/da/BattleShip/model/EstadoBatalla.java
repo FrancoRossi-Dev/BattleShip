@@ -18,7 +18,7 @@ public abstract class EstadoBatalla {
 
     public abstract String getNombre();
 
-    protected abstract void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException;
+    protected abstract void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException;
 
     protected abstract void librarBatalla() throws BattleException;
 
@@ -41,5 +41,9 @@ public abstract class EstadoBatalla {
     }
 
     protected abstract boolean esFinalizada();
+
+    protected boolean revelaBarcosEnemigos() {
+        return false;
+    }
 
 }

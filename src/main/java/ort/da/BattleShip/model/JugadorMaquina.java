@@ -17,7 +17,7 @@ public class JugadorMaquina extends Jugador {
 
     public Celda elegirObjetivo() throws BattleException {
         if (historial.estaCompleto()) throw new BattleException("No quedan celdas libres para disparar");
-        return tactica.ElegirCelda(historial);
+        return tactica.elegirCelda(historial);
     }
 
     private static final int MAX_DESPLIEGUES = 100;
@@ -58,8 +58,8 @@ public class JugadorMaquina extends Jugador {
     public void agregarAlHistorial(Disparo d) throws BattleException {
         if (d == null) throw new BattleException("Disparo invalido");
         historial.agregar(d);
-        // strategy: la tactica actual indica cual usar en el proximo turno
-        tactica = tactica.siguienteTactica(d);
+        // la táctica es la misma toda la batalla; si tiene modos (caza y ataque), ella decide si cambia
+        tactica.registrarDisparo(d);
     }
 
 }

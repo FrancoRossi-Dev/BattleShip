@@ -8,8 +8,8 @@ public class TacticaEspiral implements TacticaInterfaz {
     private static final int[][] DIRECCIONES = {{0, 1}, {-1, 0}, {0, -1}, {1, 0}};
 
     @Override
-    public String GetNombre() {
-       return "Táctica Espiral";
+    public String getNombre() {
+        return TacticaTipo.ESPIRAL;
     }
 
     // recorre la espiral desde el centro como si el oceano fuese cuadrado,
@@ -18,7 +18,7 @@ public class TacticaEspiral implements TacticaInterfaz {
     // y devuelve la primera celda libre que encuentra.
     // termina siempre porque JugadorMaquina garantiza que queda una celda libre
     @Override
-    public Celda ElegirCelda(HistorialDisparos historial) {
+    public Celda elegirCelda(HistorialDisparos historial) {
         // 1. se arranca en la celda central
         int fila = historial.getAlto() / 2;
         int columna = (historial.getAncho() - 1) / 2;
@@ -41,8 +41,7 @@ public class TacticaEspiral implements TacticaInterfaz {
 
     // nunca cambia: sigue la espiral toda la partida
     @Override
-    public TacticaInterfaz siguienteTactica(Disparo ultimoDisparo) {
-        return this;
+    public void registrarDisparo(Disparo disparo) {
     }
 
 }

@@ -63,8 +63,9 @@ public class Batalla extends Observable {
 
 
     // Preparación
-    public void desplegarBarco(int posBarco, int coorX, int coorY, String orientacion) throws BattleException {
-        estado.desplegarBarco(posBarco, coorX, coorY, orientacion);
+    // siempre se ubica el primer barco pendiente (el más grande)
+    public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
+        estado.desplegarBarco(coorX, coorY, orientacion);
         avisar(Batalla.events.BARCO_DESPLEGADO);
     }
 
@@ -93,10 +94,6 @@ public class Batalla extends Observable {
 
     public boolean flotaDesplegada() {
         return estado.flotaDesplegada();
-    }
-
-    public Barco proximoBarco() {
-        return estado.proximoBarco();
     }
 
     // barcos que faltan ubicar, de mayor a menor; vacía fuera de preparación
@@ -193,8 +190,26 @@ public class Batalla extends Observable {
         return aleatorio;
     }
 
-    public String getNombreEstado() {
-        return estado.getClass().getSimpleName();
+    public String nombreEstado() {
+        return estado.getNombre();
+    }
+
+    public int tamanoFlota() {
+        return flota.tamanoTotal();
+    }
+
+    // integridad: la flota se cuenta completa aunque todavía no esté desplegada (en preparación)
+    public int partesSanasPropias() {
+        return tamanoFlota() - jugadorHumano.partesImpactadas();
+    }
+
+    public int partesSanasEnemigas() {
+        return tamanoFlota() - jugadorMaquina.partesImpactadas();
+    }
+
+    // solo una batalla perdida revela los barcos enemigos no descubiertos
+    public boolean revelaBarcosEnemigos() {
+        return estado.revelaBarcosEnemigos();
     }
 
     public boolean esFinalizada() {

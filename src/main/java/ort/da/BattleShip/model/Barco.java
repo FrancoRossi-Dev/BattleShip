@@ -30,6 +30,10 @@ public class Barco {
         return partesSanas() > 0;
     }
 
+    public String getNombre() {
+        return tipo.getNombre();
+    }
+
     public int getTamano() {
         return tipo.getTamano();
     }

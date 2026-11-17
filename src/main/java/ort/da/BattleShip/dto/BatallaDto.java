@@ -32,10 +32,10 @@ public class BatallaDto {
         this.lugar = b.getLugar();
         this.ancho = b.getAncho();
         this.alto = b.getAlto();
-        this.estado = b.getEstado().getNombre();
-        this.flotaPropiaSanas = b.getJugadorHumano().partesSanas(b.getFlota());
-        this.tamanoFlotas = b.getFlota().tamanoTotal();
-        this.flotaEnemigaSanas = b.getJugadorMaquina().partesSanas(b.getFlota());
+        this.estado = b.nombreEstado();
+        this.flotaPropiaSanas = b.partesSanasPropias();
+        this.tamanoFlotas = b.tamanoFlota();
+        this.flotaEnemigaSanas = b.partesSanasEnemigas();
     }
 
     public static List<BatallaDto> fromList(List<Batalla> batallas) {

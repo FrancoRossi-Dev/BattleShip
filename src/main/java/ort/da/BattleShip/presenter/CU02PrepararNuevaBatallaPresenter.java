@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import ort.da.BattleShip.dto.BarcoUbicadoDto;
+import ort.da.BattleShip.dto.CeldasDto;
 import ort.da.BattleShip.dto.InicializarTableroDto;
-import ort.da.BattleShip.dto.TableroDespliegueDto;
+import ort.da.BattleShip.dto.TacticaDto;
+import ort.da.BattleShip.dto.TipoBarcoDto;
 import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
@@ -35,8 +36,6 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
     private List<TacticaTipo> listaDeTacticas = new ArrayList<>();
     private List<TipoBarco> listaDeTiposDeBarco = new ArrayList<>();
     private Batalla batalla;
-    // la letra pide horizontal seleccionado por defecto
-    private String orientacion = "HORIZONTAL";
 
     private ConexionNavegador conexionNavegador;
 
@@ -186,7 +185,6 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     @PostMapping("/desplegarFlota")
     public Commands desplegarFlota(
-            @RequestParam(defaultValue = "0") int indiceBarco,
             // nombres que envía BattleShipBoard al hacer clic: vertical = fila (Y), horizontal = columna (X)
             @RequestParam int coordenadaVertical,
             @RequestParam int coordenadaHorizontal,
@@ -196,8 +194,8 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
         // el barco ubicado llega a la vista solo por SSE, desde actualizar() (evento BARCO_DESPLEGADO).
         // preguntar si es necesario devolver tambien aca
-        batalla.desplegarBarco(indiceBarco, coordenadaHorizontal, coordenadaVertical, orientacion);
-        this.orientacion = orientacion;
+        // siempre se ubica el primer barco pendiente (el seleccionado en la vista)
+        batalla.desplegarBarco(coordenadaHorizontal, coordenadaVertical, orientacion);
 
         // la leyenda de acción la arma el cliente; acá solo se avisa cuando no quedan barcos por ubicar
         // con la flota completa el tablero sigue habilitado: un nuevo clic lo rechaza el modelo
@@ -278,14 +276,13 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     // COMMANDS
 
-    // como en Agenda (tiposEstado, listaTipoContactos), las listas de tipos van directo;
     // la vista usa la posición de cada uno como valor del formulario
     private Command listaTacticas() {
-        return new Command("listaTacticas", listaDeTacticas);
+        return new Command("listaTacticas", TacticaDto.fromList(listaDeTacticas));
     }
 
     private Command listaTiposBarco() {
-        return new Command("listaTiposBarco", listaDeTiposDeBarco);
+        return new Command("listaTiposBarco", TipoBarcoDto.fromTipos(listaDeTiposDeBarco));
     }
 
     private Command habilitarFormulario(boolean h) {
@@ -298,29 +295,25 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
 
     // aguas propias -> desplegarFlota; aguas enemigas -> error "No puede ubicar barcos en aguas enemigas"
     private Command inicializarTablero() {
-        return new Command("inicializar", new InicializarTableroDto(batalla.getAlto(), batalla.getAncho(),
+        return new Command("inicializar", new InicializarTableroDto(batalla,
                 "/nuevaBatalla/desplegarFlota", "/nuevaBatalla/aguasEnemigas"));
     }
 
     // tipos de los barcos que faltan ubicar, de mayor a menor (repetidos si hay más de uno del tipo);
     // la vista marca el primero como seleccionado, arma la leyenda de acción y usa el tamaño
-    // para la vista previa del barco sobre el océano. Como listaTiposBarco, los tipos van directo
+    // para la vista previa del barco sobre el océano. Mismos datos que listaTiposBarco
     private Command barcosPendientes() {
-        List<TipoBarco> tipos = new ArrayList<>();
-        for (Barco b : batalla.barcosPendientes()) {
-            tipos.add(b.getTipo());
-        }
-        return new Command("barcosPendientes", tipos);
+        return new Command("barcosPendientes", TipoBarcoDto.fromBarcos(batalla.barcosPendientes()));
     }
 
     // al retomar una batalla: océano propio completo, la vista lo recorre celda por celda
     private Command mostrarTableroPropio() {
-        return new Command("tableroPropio", new TableroDespliegueDto(batalla));
+        return new Command("tableroPropio", new CeldasDto(batalla.celdasPropias(), true));
     }
 
     // tras cada clic: solo las celdas del barco recién ubicado
     private Command mostrarBarcoUbicado(Barco b) {
-        return new Command("barcoUbicado", new BarcoUbicadoDto(b));
+        return new Command("barcoUbicado", new CeldasDto(b.getCeldas(), true));
     }
 
     // el diálogo solo necesita el lugar; como en Agenda, un dato único va directo sin DTO.
