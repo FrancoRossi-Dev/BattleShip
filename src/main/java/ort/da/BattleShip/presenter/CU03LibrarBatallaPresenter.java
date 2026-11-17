@@ -62,7 +62,9 @@ public class CU03LibrarBatallaPresenter implements Observador {
     - Un botón “Volver a la sala de operaciones” 
     */
     @PostMapping("/vistaConectada")
-    public Commands vistaConectada(@RequestParam int idBatalla) throws BattleException {
+    public Commands vistaConectada(@RequestParam(required = false) Integer idBatalla) throws BattleException {
+        // como Agenda con el usuario no logueado: sin batalla indicada se vuelve a la sala
+        if (idBatalla == null) return Commands.create(CommonCommands.redirigir("index.html"));
         batallaActual = f.getBatalla(idBatalla);
         batallaActual.agregarObservador(this);
 

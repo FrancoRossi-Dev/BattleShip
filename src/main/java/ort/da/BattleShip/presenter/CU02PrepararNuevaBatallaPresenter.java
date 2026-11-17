@@ -79,6 +79,8 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         }
         // si ingresa una id al conectarse a este endpoint, se retoma el proceso de creción
         batalla = f.getBatalla(idBatalla);
+        // otra sesión ya la libró: el despliegue terminó
+        if (!batalla.enPreparacion()) return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
         batalla.agregarObservador(this);
 
         Commands comandos = Commands.create(habilitarFormulario(false), lugarBatalla(), inicializarTablero(),
@@ -138,15 +140,17 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
     @PostMapping("/crearBatalla")
     public Commands crearBatalla(
             @RequestParam(defaultValue = "") String lugar,
-            @RequestParam int posTactica,
-            @RequestParam int ancho,
-            @RequestParam int alto,
+            @RequestParam(defaultValue = "") String posTactica,
+            // los números llegan como texto: si no son números se informa con BattleException
+            @RequestParam(defaultValue = "") String ancho,
+            @RequestParam(defaultValue = "") String alto,
             // una cantidad por tipo de barco, en el orden de listaTiposBarco ("1,0,2,...")
-            @RequestParam int[] cantidades) throws BattleException {
+            @RequestParam(defaultValue = "") String cantidades) throws BattleException {
 
         // crea batalla a partir de los argumentos
-        Batalla nueva = new Batalla(lugar, tacticaEn(posTactica), ancho, alto,
-                listaDeTiposDeBarco, cantidades);
+        Batalla nueva = new Batalla(lugar, tacticaEn(numero(posTactica, "la táctica")),
+                numero(ancho, "las celdas horizontales"), numero(alto, "las celdas verticales"),
+                listaDeTiposDeBarco, cantidadesPorTipo(cantidades));
 
         // envía a la fachada para agregarla a la lista
         f.agregar(nueva);
@@ -251,6 +255,25 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         }
     }
 
+    private int numero(String texto, String campo) throws BattleException {
+        try {
+            return Integer.parseInt(texto.trim());
+        } catch (NumberFormatException e) {
+            throw new BattleException("Debe ingresar un número entero en " + campo);
+        }
+    }
+
+    private int[] cantidadesPorTipo(String texto) throws BattleException {
+        String[] partes = texto.split(",", -1);
+        if (partes.length != listaDeTiposDeBarco.size())
+            throw new BattleException("Debe ingresar una cantidad para cada tipo de barco");
+        int[] cantidades = new int[partes.length];
+        for (int i = 0; i < partes.length; i++) {
+            cantidades[i] = numero(partes[i], "la cantidad de " + listaDeTiposDeBarco.get(i).getNombre());
+        }
+        return cantidades;
+    }
+
     // funcion helper para coordinar posicion de tacticas
     private TacticaTipo tacticaEn(int pos) throws BattleException {
         if (pos < 0 || pos >= listaDeTacticas.size())
@@ -327,6 +350,14 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         if(evento.equals(Batalla.Eventos.BARCO_DESPLEGADO)) {
             Barco b = ((Batalla) origen).getUltimoBarcoColocado();
             conexionNavegador.enviarJSON(Commands.create(mostrarBarcoUbicado(b), barcosPendientes()));
+        }
+        // otra sesión libró la batalla (preparación -> en combate): esta vista pasa a CU03
+        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
+            try {
+                conexionNavegador.enviarJSON(Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla))));
+            } catch (BattleException e) {
+                System.out.println("Error al pasar a librar batalla: " + e.getMessage());
+            }
         }
     }
 }
