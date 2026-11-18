@@ -174,6 +174,7 @@ classDiagram
         +librarBatalla()
         +jugarRonda(int x, int y) Ronda synchronized
         ~cambiarEstado(EstadoTipo)
+        ~hacerDesplegarBarco(TipoBarco, int x, int y, String orientacion)
         ~hacerJugarRonda(int x, int y) Ronda
         +barcosPendientes() List~Barco~
         +flotaDesplegada() boolean
@@ -215,6 +216,8 @@ classDiagram
         ~barcosPendientes() List~Barco~
         ~enPreparacion() boolean
         ~revelaBarcosEnemigos() boolean
+        ~esGanada() boolean
+        ~esPerdida() boolean
     }
     class EstadoPreparacion {
         -Flota pendienteAsignar
@@ -235,6 +238,8 @@ classDiagram
     class EstadoFactory {
         +crearEstadoBatalla(EstadoTipo, Batalla)$ EstadoBatalla
     }
+    note for EstadoPreparacion "da el permiso si quedan barcos y lleva los pendientes; Batalla.hacerDesplegarBarco ubica el barco"
+    note for EstadoFinalizada "un único estado finalizado: el resultado responde esGanada, esPerdida y revelaBarcosEnemigos"
 
     Batalla ..> Batalla_Eventos : avisa
     Batalla "1" *-- "1" EstadoBatalla : estado

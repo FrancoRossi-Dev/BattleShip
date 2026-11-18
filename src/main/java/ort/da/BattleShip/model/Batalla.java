@@ -10,17 +10,13 @@ public class Batalla extends Observable {
 
     @Getter
     private String lugar;
-    @Getter
     private EstadoBatalla estado;
 
     @Getter
     private Flota flota;
 
-    @Getter
     private JugadorHumano jugadorHumano;
-    @Getter
     private JugadorMaquina jugadorMaquina;
-    @Getter
     private List<Ronda> rondas = new ArrayList<>();
     @Getter 
     private int ancho, alto;
@@ -68,6 +64,11 @@ public class Batalla extends Observable {
     public void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
         estado.desplegarBarco(coorX, coorY, orientacion);
         avisar(Batalla.Eventos.BARCO_DESPLEGADO);
+    }
+
+    // llamado desde el estado cuando da el permiso (solo en preparación): ubica el barco en aguas propias
+    protected void hacerDesplegarBarco(TipoBarco tipo, int coorX, int coorY, String orientacion) throws BattleException {
+        jugadorHumano.desplegarBarco(tipo, coorX, coorY, orientacion);
     }
 
 
@@ -156,11 +157,11 @@ public class Batalla extends Observable {
 
     // finalizada
     public boolean isGanada() {
-        return estado.isGanada();
+        return estado.esGanada();
     }
 
     public boolean isPerdida() {
-        return estado.isPerdida();
+        return estado.esPerdida();
     }
 
     // utilidades

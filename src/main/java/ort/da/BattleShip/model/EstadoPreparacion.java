@@ -22,13 +22,14 @@ public class EstadoPreparacion extends EstadoBatalla {
     }
 
 
+    // el estado da el permiso (quedan barcos por ubicar) y la batalla hace el despliegue;
+    // si la posición no es válida el barco sigue pendiente
     @Override
     protected void desplegarBarco(int coorX, int coorY, String orientacion) throws BattleException {
-        Batalla b = getBatalla();
         if (flotaDesplegada()) throw new BattleException("Todos los barcos ya fueron posicionados");
 
         Barco seleccionado = proximoBarco();
-        b.getJugadorHumano().desplegarBarco(seleccionado.getTipo(), coorX, coorY, orientacion);
+        getBatalla().hacerDesplegarBarco(seleccionado.getTipo(), coorX, coorY, orientacion);
         pendienteAsignar.remover(seleccionado);
     }
 

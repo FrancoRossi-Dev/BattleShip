@@ -66,7 +66,7 @@ public class EstadoFinalizada extends EstadoBatalla {
     }
     
     protected boolean esPerdida() {
-        return this.resultado.equals(GANADA);
+        return this.resultado.equals(PERDIDA);
     }
 
 }
