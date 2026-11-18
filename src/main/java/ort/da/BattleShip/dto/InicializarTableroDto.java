@@ -3,8 +3,8 @@ package ort.da.BattleShip.dto;
 import lombok.Getter;
 import ort.da.BattleShip.model.Batalla;
 
-// formato del comando "inicializar" de BattleShipBoard (igual al InicializarDto del demo del docente).
-// Un escuchador null deja ese océano en solo lectura.
+// formato del comando "inicializar" de BattleShipBoard
+// un escuchador null deja ese océano en solo lectura
 public class InicializarTableroDto {
 
     @Getter

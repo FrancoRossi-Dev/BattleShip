@@ -1,13 +1,6 @@
 /*
- * BattleShip — hoja de estilos compartida por las vistas (CU01, CU02, CU03).
- *
- * Base: tablero-demo.css provisto por la cátedra (tipografía Segoe UI, tinta #18332d,
- * bruma #f3f6f4, borde #d8e2dc, acción verde #176b57 / #105442, foco latón #e6a33b,
- * radios de 4–6px). Sobre esa base se agrega una paleta marítima tomada de las
- * pantallas de la letra: mar profundo de fondo, panel claro, títulos serif.
- *
- * El componente BattleShipBoard inyecta su propio CSS (.battle-ship-board-*):
- * esta hoja no lo modifica.
+ * hoja de estilos compartida por las vistas (CU01, CU02, CU03)
+ * BattleShipBoard inyecta su propio CSS (.battle-ship-board-*): esta hoja no lo modifica
  */
 
 /* ============================================================
@@ -15,7 +8,7 @@
    ============================================================ */
 
 :root {
-  /* base tablero-demo.css */
+  /* base */
   --tinta: #18332d;
   --bruma: #f3f6f4;
   --superficie: #ffffff;

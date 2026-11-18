@@ -361,6 +361,7 @@ classDiagram
         -Disparo disparo
         +recibirDisparo() Disparo
         +isDisparada() boolean
+        +tieneBarcoVivo() boolean
         +estaEn(int fila, int columna) boolean
         +valor(boolean mostrarBarcos) String
         +setBarco(Barco)
@@ -399,6 +400,7 @@ classDiagram
         -boolean hundio
         ~registrarResultado()
         +isImpacto() boolean
+        +isImpactoSinHundir() boolean
         +hundioBarco() boolean
     }
     class HistorialDisparos {
@@ -410,6 +412,7 @@ classDiagram
         +estaCompleto() boolean
         +estaLibre(int fila, int columna) boolean
         +celdasLibres() List~Celda~
+        +impactosSinHundir() List~Celda~
     }
 
     Batalla "1" *-- "1" Flota : configuración
@@ -471,7 +474,7 @@ classDiagram
     class ModoCaza
     class ModoAtaque
     note for ModoCaza "impacto sin hundir: cambia a ModoAtaque"
-    note for ModoAtaque "barco hundido: vuelve a ModoCaza"
+    note for ModoAtaque "barco hundido: vuelve a ModoCaza. Pide historial.impactosSinHundir() para saber qué barco atacar"
     class TacticaTipo {
         +String SECUENCIAL$
         +String ESPIRAL$

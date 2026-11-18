@@ -420,8 +420,7 @@
 
         const URL_SSE = '/nuevaBatalla/registrarSSE';
 
-        // el SSE se abre recién con la respuesta de vistaConectada: así la sesión ya existe y el emitter
-        // queda en la misma sesión que el presentador (ver index.html)
+        // el SSE se abre con la respuesta de vistaConectada, cuando la sesión ya existe
         let sseConnection = null;
         function conectarSSE() {
             if (sseConnection === null) {

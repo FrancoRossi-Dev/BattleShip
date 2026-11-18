@@ -49,7 +49,7 @@ public class Oceano {
         return barcosVivos.isEmpty();
     }
 
-    // el océano es el experto en sus celdas: las expone recorridas fila por fila
+    // celdas recorridas fila por fila
     public List<Celda> getCeldas() {
         List<Celda> lista = new ArrayList<>();
         for (int fila = 0; fila < alto; fila++) {

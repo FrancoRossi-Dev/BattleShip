@@ -112,7 +112,6 @@ public class CU03LibrarBatallaPresenter implements Observador {
 
     // ===================== COMMANDS =====================
 
-    // como en Agenda (nombreUsuario, cantidadContactos), cada dato simple va en su propio comando
     private Command lugarBatalla() {
         return new Command("lugarBatalla", batallaActual.getLugar());
     }

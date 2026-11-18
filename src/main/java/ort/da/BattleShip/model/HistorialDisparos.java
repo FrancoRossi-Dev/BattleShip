@@ -43,9 +43,18 @@ public class HistorialDisparos {
         return false;
     }
 
+    // aciertos cuyo barco sigue a flote: es el barco que se esta atacando
+    public List<Celda> impactosSinHundir() {
+        List<Celda> impactos = new ArrayList<>();
+        for (Disparo d : disparos) {
+            if (d.isImpactoSinHundir()) impactos.add(d.getCelda());
+        }
+        return impactos;
+    }
+
     // resta el océano completo menos las celdas ya disparadas
     public List<Celda> celdasLibres() {
-        // 1. matriz de marcas: true donde ya se disparó (una sola pasada por los disparos)
+        // 1. matriz de marcas: true donde ya se disparó
         boolean[][] disparadas = new boolean[alto][ancho];
         for (Disparo d : disparos) {
             Celda c = d.getCelda();

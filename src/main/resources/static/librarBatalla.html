@@ -51,7 +51,7 @@
                 <div id="tablero" class="tablero"></div>
             </div>
 
-            <!-- panel de estado: solo informativo, se arma con lo que ya llega para el tablero -->
+            <!-- panel de estado de la partida -->
             <aside class="lateral" aria-label="Estado de la partida">
                 <div class="tarjeta">
                     <h2 class="tarjeta-titulo">
@@ -135,17 +135,14 @@
         };
 
         // el tablero escucha por sí mismo: inicializar, bajasEnemigas
-        // mismo tamaño que en CU02: deja lugar al panel de estado a la derecha
+        // deja lugar al panel de estado a la derecha
         const tablero = new BattleShipBoard(contenedorTablero, dispatcherTablero,
             { anchoMaximo: 700, altoMaximo: 420, tamanoFuente: 12, tamanoIcono: 22 });
 
         // ---- Panel de estado de la partida ----
-        // Se arma solo con lo que el presentador ya manda para el tablero, sin comandos nuevos:
-        // - Flota propia: los barcos nunca se tocan (ni en diagonal), así que cada grupo de celdas
-        //   contiguas con "barco" o "impacto" en aguas propias es un barco. Hundido = todas sus celdas en "impacto".
-        // - Flota enemiga: tiene la misma composición que la propia (el modelo despliega la misma Flota
-        //   al azar); los hundidos salen de "bajasEnemigas" ("{4} {1} {2}"), así que no se revela nada
-        //   que la vista no muestre ya.
+        // - flota propia: los barcos nunca se tocan, así que cada grupo de celdas contiguas
+        //   con "barco" o "impacto" es un barco. hundido = todas sus celdas en "impacto"
+        // - flota enemiga: misma composición que la propia; los hundidos salen de "bajasEnemigas"
         const celdasPropias = new Map(); // "fila,columna" -> valor
         const clave = (v, h) => `${v},${h}`;
         let bajasEnemigas = [];          // tamaños hundidos, en orden cronológico
@@ -232,8 +229,7 @@
         let estadoAnterior = null;
         let rondaActual = '-';
 
-        // solo si la batalla termina mientras se juega: al entrar a ver una batalla ya ganada o perdida
-        // (la letra lo permite) no se muestra
+        // solo si la batalla termina mientras se juega: al entrar a ver una batalla ya ganada o perdida no se muestra
         function mostrarFin(estado) {
             const ganada = estado === 'Ganada';
             const lugar = document.getElementById('lugarBatalla').textContent;
@@ -260,8 +256,7 @@
 
         const URL_SSE = '/librarBatalla/registrarSSE';
 
-        // el SSE se abre recién con la respuesta de vistaConectada: así la sesión ya existe y el emitter
-        // queda en la misma sesión que el presentador (ver index.html)
+        // el SSE se abre con la respuesta de vistaConectada, cuando la sesión ya existe
         let sseConnection = null;
         function conectarSSE() {
             if (sseConnection === null) {

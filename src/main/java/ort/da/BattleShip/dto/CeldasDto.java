@@ -6,8 +6,7 @@ import java.util.List;
 import lombok.Getter;
 import ort.da.BattleShip.model.Celda;
 
-// celdas de un océano (completo o solo las de un barco), en el formato que dibuja BattleShipBoard.
-// Lo usan tableroPropio y barcoUbicado (CU02) y tableroPropio y tableroEnemigo (CU03): mismos datos.
+// celdas de un océano (completo o solo las de un barco), en el formato que dibuja BattleShipBoard
 // mostrarBarcos=false oculta los barcos no impactados (aguas enemigas)
 public class CeldasDto {
 

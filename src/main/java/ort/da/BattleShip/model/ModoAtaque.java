@@ -23,22 +23,15 @@ public class ModoAtaque extends ModoCazaYAtaque {
     // 3. se elige una candidata al azar
     @Override
     public Celda elegirCelda(HistorialDisparos historial) {
-        List<Celda> impactos = impactosSinHundir(historial);
-        List<Celda> candidatas = impactos.size() == 1
-                ? vecinosLibres(impactos.get(0), historial)
-                : extremosLibres(impactos, historial);
-        return candidatas.get((int) (Math.random() * candidatas.size()));
-    }
-
-    // aciertos cuyo barco sigue a flote: es el barco que se esta atacando
-    // (no se usa solo el ultimo disparo: tras un agua el barco sigue tocado)
-    private List<Celda> impactosSinHundir(HistorialDisparos historial) {
-        List<Celda> impactos = new ArrayList<>();
-        for (Disparo d : historial.getDisparos()) {
-            // se mira el barco, no el disparo: hundioBarco() solo es true en el disparo que lo hundió
-            if (d.isImpacto() && d.getCelda().getBarco().isVivo()) impactos.add(d.getCelda());
+        List<Celda> impactos = historial.impactosSinHundir();
+        List<Celda> candidatas;
+        if(impactos.size() == 1) {
+            candidatas = vecinosLibres(impactos.get(0), historial);
+        } else {
+            candidatas = extremosLibres(impactos, historial);
         }
-        return impactos;
+
+        return candidatas.get((int) (Math.random() * candidatas.size()));
     }
 
     // un solo impacto: no se conoce la direccion, se prueban los 4 lados

@@ -23,6 +23,10 @@ public class Celda {
         return disparo != null;
     }
 
+    public boolean tieneBarcoVivo() {
+        return barco != null && barco.isVivo();
+    }
+
     public boolean estaEn(int fila, int columna) {
         return this.fila == fila && this.columna == columna;
     }
@@ -34,7 +38,7 @@ public class Celda {
         return disparo;
     }
 
-    // la celda es experta en su propio contenido; mostrarBarcos=false oculta los barcos no impactados
+    // mostrarBarcos=false oculta los barcos no impactados
     public String valor(boolean mostrarBarcos) {
         if (isDisparada()) {
             if (barco != null) return "impacto";

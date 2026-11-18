@@ -44,7 +44,7 @@ El tablero, al hacer clic, envía `{coordenadaVertical, coordenadaHorizontal}` a
   - [ ] Bug: `Disparo.hundioBarco()` mira el estado *actual* del barco → da `true` para todos los impactos de un barco ya hundido
   - [ ] Que `Disparo` guarde en su construcción si fue el que hundió el barco
   - [ ] `Batalla.bajasEnemigas()` derivada de `rondas` (disparos humanos que hundieron) → orden cronológico gratis
-  - [ ] Ajustar `TacticaCazaYAtaque.impactosSinHundir` para que use `celda.getBarco().isVivo()`
+  - [x] `HistorialDisparos.impactosSinHundir` (Experto: delega en `Disparo.isImpactoSinHundir` → `Celda.tieneBarcoVivo`)
 - [ ] **Exponer celdas para la vista**: `Celda.valor(boolean mostrarBarcos)` (Experto) y que `Oceano` las recorra
   - aguas propias, aguas enemigas (ocultas), revelar barcos no descubiertos si la batalla se perdió
   - [ ] CU03 necesita **su propio dto de tablero**, distinto de `TableroDespliegueDto` (que es solo para el despliegue de CU02). Reusar `CeldaDto` con `mostrarBarcos=false` para aguas enemigas

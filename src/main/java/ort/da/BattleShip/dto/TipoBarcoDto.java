@@ -7,7 +7,7 @@ import lombok.Getter;
 import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.TipoBarco;
 
-// CU02 listaTiposBarco y barcosPendientes: la vista usa nombre y tamaño en los dos casos
+// CU02 listaTiposBarco y barcosPendientes
 public class TipoBarcoDto {
 
     @Getter

@@ -134,7 +134,7 @@ public class Batalla extends Observable {
         return rondas.size() + 1;
     }
 
-    // la batalla ejecuta los turnos por experto, el estado los llama.
+    // llamados desde el estado
     protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
         return r.turnoHumano(jugadorHumano, jugadorMaquina, new Celda(coorY, coorX));
     }

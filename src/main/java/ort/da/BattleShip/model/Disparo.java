@@ -7,8 +7,7 @@ public class Disparo {
     @Getter
     private Celda celda;
 
-    // se fija una sola vez, al registrar el disparo: solo el disparo que hunde el barco lo marca.
-    // (antes se calculaba con el estado actual del barco, y daba true para todos sus impactos)
+    // se fija una sola vez, al registrar el disparo: solo el disparo que hunde el barco lo marca
     private boolean hundio = false;
 
     public Disparo(Celda celda) {
@@ -17,11 +16,16 @@ public class Disparo {
 
     // la celda lo llama apenas queda marcada como disparada
     protected void registrarResultado() {
-        this.hundio = isImpacto() && !celda.getBarco().isVivo();
+        this.hundio = isImpacto() && !celda.tieneBarcoVivo();
     }
 
     public boolean isImpacto() {
         return celda.getBarco() != null;
+    }
+
+    // impacto en un barco que sigue a flote
+    public boolean isImpactoSinHundir() {
+        return celda.tieneBarcoVivo();
     }
 
     public boolean hundioBarco() {
