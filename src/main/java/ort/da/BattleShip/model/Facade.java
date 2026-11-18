@@ -20,7 +20,7 @@ public class Facade extends Observable implements Observador {
     private Facade() {
     }
 
-    public static synchronized Facade getInstancia() {
+    public static Facade getInstancia() {
         if (instancia == null) {
             instancia = new Facade();
         }
