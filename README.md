@@ -76,6 +76,59 @@ classDiagram
 
 ---
 
+## 1.b Diagrama de dominio — solo clases y relaciones
+
+Para el `.asta` del dominio: entidades y asociaciones con multiplicidades. Atributos solo donde identifican al objeto: `lugar` (no se repite entre batallas), `nombre` del tipo de barco y de la táctica, `fila`/`columna` de la celda.
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Batalla {
+        lugar
+    }
+    class EstadoBatalla
+    class Flota
+    class Barco
+    class TipoBarco {
+        nombre
+    }
+    class Jugador {
+        <<abstract>>
+    }
+    class JugadorHumano
+    class JugadorMaquina
+    class Tactica {
+        nombre
+    }
+    class Oceano
+    class Celda {
+        fila
+        columna
+    }
+    class Ronda
+    class Disparo
+
+    Batalla "1" -- "1" EstadoBatalla : está en
+    Batalla "1" -- "1" Flota : se configura con
+    Batalla "1" -- "1" JugadorHumano : humano
+    Batalla "1" -- "1" JugadorMaquina : máquina
+    Batalla "1" -- "*" Ronda : se juega en
+    Jugador <|-- JugadorHumano
+    Jugador <|-- JugadorMaquina
+    JugadorMaquina "*" -- "1" Tactica : juega con
+    Jugador "1" -- "1" Oceano : aguas propias
+    Oceano "1" -- "*" Celda
+    Flota "1" -- "1..*" Barco
+    Barco "*" -- "1" TipoBarco : es de
+    Barco "0..1" -- "*" Celda : ocupa
+    Ronda "0..1" -- "1" Disparo : disparoHumano
+    Ronda "0..1" -- "0..1" Disparo : disparoMaquina
+    Disparo "0..1" -- "1" Celda : apunta a
+```
+
+---
+
 ## 2. Diagrama de diseño — Modelo
 
 ### 2.1 Fachada, sistemas y Observer
