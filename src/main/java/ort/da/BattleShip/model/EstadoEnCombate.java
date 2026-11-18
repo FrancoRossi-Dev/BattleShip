@@ -12,15 +12,16 @@ public class EstadoEnCombate extends EstadoBatalla {
     }
 
     @Override
-    protected void jugarRonda(int coorX, int coorY) throws BattleException {
+    protected Ronda jugarRonda(int coorX, int coorY) throws BattleException {
         Batalla b = getBatalla();
-        b.hacerJugarRonda(coorX, coorY);
+        Ronda r = b.hacerJugarRonda(coorX, coorY);
 
         if (b.flotaMaquinaHundida()) {
             b.cambiarEstado(EstadoTipo.FINALIZADA_VICTORIA);
         } else if (b.flotaHumanaHundida()) {
             b.cambiarEstado(EstadoTipo.FINALIZADA_DERROTA);
         }
+        return r;
     }
 
     

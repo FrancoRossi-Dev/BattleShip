@@ -76,12 +76,12 @@ public class Batalla extends Observable {
 
     // synchronized: si dos sesiones disparan a la vez sobre la misma batalla, la ronda es atómica
     // y gana el primer disparo (el segundo encuentra la celda ya disparada o la batalla finalizada)
-    public synchronized void jugarRonda(int coorX, int coorY) throws BattleException {
-        estado.jugarRonda(coorX, coorY);
+    public synchronized Ronda jugarRonda(int coorX, int coorY) throws BattleException {
+        return estado.jugarRonda(coorX, coorY);
     }
 
     // llamado dsde el estado
-    protected void hacerJugarRonda(int coorX, int coorY) throws BattleException {
+    protected Ronda hacerJugarRonda(int coorX, int coorY) throws BattleException {
         Ronda r = new Ronda();
 
         hacerTurnoHumano(r, coorX, coorY);
@@ -90,6 +90,7 @@ public class Batalla extends Observable {
         }
         agregarRonda(r);
         avisar(Batalla.Eventos.RONDA_FINALIZADA);
+        return r;
     }
 
     public boolean flotaDesplegada() {
@@ -105,7 +106,7 @@ public class Batalla extends Observable {
         return estado.enPreparacion();
     }
 
-    public Ronda ultimaRonda() {
+    public Ronda getUltimaRonda() {
         if (rondas.isEmpty()) return null;
         return rondas.getLast();
     }

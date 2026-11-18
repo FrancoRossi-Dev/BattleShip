@@ -67,7 +67,7 @@ public class EstadoPreparacion extends EstadoBatalla {
     }
 
     @Override
-    protected void jugarRonda(int coorX, int coorY) throws BattleException {
+    protected Ronda jugarRonda(int coorX, int coorY) throws BattleException {
         throw new BattleException("La batalla todavía no comenzó");
     }
 

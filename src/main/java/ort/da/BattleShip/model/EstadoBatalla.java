@@ -19,7 +19,7 @@ public abstract class EstadoBatalla {
 
     protected abstract void librarBatalla() throws BattleException;
 
-    protected abstract void jugarRonda(int coorX, int coorY) throws BattleException;
+    protected abstract Ronda jugarRonda(int coorX, int coorY) throws BattleException;
 
     protected abstract boolean flotaDesplegada();
 

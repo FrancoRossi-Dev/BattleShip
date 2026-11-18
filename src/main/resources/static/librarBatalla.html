@@ -134,7 +134,7 @@
             }
         };
 
-        // el tablero escucha por sí mismo: inicializar, mostrarAguasPropias, mostrarAguasEnemigas, bajasEnemigas
+        // el tablero escucha por sí mismo: inicializar, bajasEnemigas
         // mismo tamaño que en CU02: deja lugar al panel de estado a la derecha
         const tablero = new BattleShipBoard(contenedorTablero, dispatcherTablero,
             { anchoMaximo: 700, altoMaximo: 420, tamanoFuente: 12, tamanoIcono: 22 });
@@ -299,10 +299,15 @@
             actualizarPanel();
         });
 
-        // BattleShipBoard también escucha estos comandos; acá solo se actualiza el panel
-        view.handler('mostrarAguasPropias', (celda) => {
-            registrarCeldaPropia(celda);
-            actualizarPanel();
+        // los dos disparos de la ronda juntos: primero el del humano y después el de la máquina
+        // (disparoMaquina viene null si el humano hundió la flota enemiga)
+        view.handler('rondaJugada', ({ disparoHumano, disparoMaquina }) => {
+            tablero.mostrarAguasEnemigas(disparoHumano);
+            if (disparoMaquina) {
+                tablero.mostrarAguasPropias(disparoMaquina);
+                registrarCeldaPropia(disparoMaquina);
+                actualizarPanel();
+            }
         });
 
         view.handler('bajasEnemigas', (bajas) => {

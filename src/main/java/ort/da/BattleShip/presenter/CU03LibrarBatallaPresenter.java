@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import ort.da.BattleShip.dto.CeldaDto;
 import ort.da.BattleShip.dto.CeldasDto;
 import ort.da.BattleShip.dto.InicializarTableroDto;
+import ort.da.BattleShip.dto.RondaDto;
 import ort.da.BattleShip.model.Barco;
 import ort.da.BattleShip.model.Batalla;
 import ort.da.BattleShip.model.BattleException;
@@ -106,10 +106,11 @@ public class CU03LibrarBatallaPresenter implements Observador {
     // vertical = fila (Y), horizontal = columna (X)
     @PostMapping("/jugarRonda")
     public Commands jugarRonda(@RequestParam int coordenadaVertical, @RequestParam int coordenadaHorizontal) throws BattleException {
-        // los disparos de la ronda y el fin de la batalla llegan a la vista por SSE, desde actualizar()
-        // (mismo criterio que CU02: no se devuelven también acá para no dibujar dos veces)
-        batallaActual.jugarRonda(coordenadaHorizontal, coordenadaVertical);
-        return Commands.create();
+        // como crearContacto en Agenda: la ronda vuelve en la respuesta y también llega por SSE desde
+        // actualizar() con los mismos comandos (se dibuja dos veces, el resultado es el mismo).
+        // El fin de la batalla llega solo por SSE (CAMBIO_ESTADO)
+        Ronda r = batallaActual.jugarRonda(coordenadaHorizontal, coordenadaVertical);
+        return Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda());
     }
 
     // flujo alternativo 2: clic en aguas propias
@@ -238,32 +239,21 @@ Flujos alternativos
         return new Command("bajasEnemigas", bajas);
     }
 
-    // los dos disparos de la ronda van en el mismo Commands: la vista los ve juntos (ronda atómica)
-    private Commands rondaJugada() {
-        Ronda r = batallaActual.ultimaRonda();
-        Commands comandos = Commands.create(
-                new Command("mostrarAguasEnemigas", new CeldaDto(r.getDisparoHumano().getCelda(), false)));
-        // si el humano hundió la flota enemiga, la máquina no dispara
-        if (r.getDisparoMaquina() != null) {
-            comandos.add(new Command("mostrarAguasPropias", new CeldaDto(r.getDisparoMaquina().getCelda(), true)));
-        }
-        return comandos.add(bajasEnemigas(), numeroRonda());
-    }
-
-    // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda)
-    private Commands batallaFinalizada() {
-        Commands comandos = Commands.create(estadoBatalla(), numeroRonda());
-        if (batallaActual.revelaBarcosEnemigos()) comandos.add(tableroEnemigo());
-        return comandos;
+    // compartido entre la respuesta de jugarRonda y el observador; los dos disparos van juntos (ronda atómica)
+    private Command rondaJugada(Ronda r) {
+        return new Command("rondaJugada", new RondaDto(r));
     }
 
     @Override
     public void actualizar(Observable origen, Object evento) {
         if (evento.equals(Batalla.Eventos.RONDA_FINALIZADA)) {
-            conexionNavegador.enviarJSON(rondaJugada());
+            Ronda r = ((Batalla) origen).getUltimaRonda();
+            conexionNavegador.enviarJSON(Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda()));
         }
+        // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda).
+        // tableroEnemigo() ya decide si revelar los barcos (solo si se perdió)
         if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
-            conexionNavegador.enviarJSON(batallaFinalizada());
+            conexionNavegador.enviarJSON(Commands.create(estadoBatalla(), numeroRonda(), tableroEnemigo()));
         }
     }
 
