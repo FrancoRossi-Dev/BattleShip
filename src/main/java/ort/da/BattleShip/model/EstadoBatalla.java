@@ -43,4 +43,12 @@ public abstract class EstadoBatalla {
         return false;
     }
 
+    protected boolean esGanada() {
+        return false;
+    }
+
+    protected boolean esPerdida() {
+        return false;
+    }
+
 }

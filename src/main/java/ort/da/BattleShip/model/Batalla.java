@@ -46,12 +46,13 @@ public class Batalla extends Observable {
         this.ancho = ancho;
         this.alto = alto;
         this.lugar = lugarOAleatorio(lugar);
+
+        // se valida previo antes de crear las clases
+        validar();
+
         this.jugadorHumano = new JugadorHumano(ancho, alto);
         this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
-        
         this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
-
-        validar();
 
         jugadorMaquina.desplegarAleatorio(flota);
     }
@@ -155,11 +156,11 @@ public class Batalla extends Observable {
 
     // finalizada
     public boolean isGanada() {
-        return estado.getNombre().equals(EstadoFinalizada.GANADA);
+        return estado.isGanada();
     }
 
     public boolean isPerdida() {
-        return estado.getNombre().equals(EstadoFinalizada.PERDIDA);
+        return estado.isPerdida();
     }
 
     // utilidades
