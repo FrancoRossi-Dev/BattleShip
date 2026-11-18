@@ -14,23 +14,31 @@ public class Oceano {
 
     private Celda[][] celdas;
 
-    // evaluar si es necesario, es lo que permite que varias 
+    // evaluar si es necesario, es lo que permite que varias
     // celdas apunten a una misma entidad y se pueda recorrer luego
-    private List<Barco> barcosVivos = new ArrayList<Barco>();
+    private List<Barco> barcosVivos;
     // se crea esta lista para llevar un listado de los barcos hundidos y su orden
-    private List<Barco> barcosHundidos = new ArrayList<>();
+    private List<Barco> barcosHundidos;
 
-    private int impactos = 0;
+    private int impactos;
 
     public Oceano(int ancho, int alto) {
         this.ancho = ancho;
         this.alto = alto;
+        vaciar();
+    }
+
+    // deja el océano sin barcos ni disparos
+    public void vaciar() {
         this.celdas = new Celda[alto][ancho];
         for(int fila = 0; fila < alto; fila++) {
             for(int columna = 0; columna < ancho; columna++){
                 celdas[fila][columna] = new Celda(fila, columna);
             }
         }
+        this.barcosVivos = new ArrayList<>();
+        this.barcosHundidos = new ArrayList<>();
+        this.impactos = 0;
     }
 
     public int partesImpactadas() {

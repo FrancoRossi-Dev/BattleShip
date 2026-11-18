@@ -10,14 +10,16 @@ public class Batalla extends Observable {
 
     @Getter
     private String lugar;
+
     private EstadoBatalla estado;
 
     @Getter
     private Flota flota;
 
-    private JugadorHumano jugadorHumano;
-    private JugadorMaquina jugadorMaquina;
+    private Jugador jugadorHumano;
+    private Jugador jugadorMaquina;
     private List<Ronda> rondas = new ArrayList<>();
+    
     @Getter 
     private int ancho, alto;
 
@@ -47,10 +49,9 @@ public class Batalla extends Observable {
         validar();
 
         this.jugadorHumano = new JugadorHumano(ancho, alto);
-        this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica);
+        // la máquina se crea con su flota desplegada al azar; el humano la ubica barco por barco en preparación
+        this.jugadorMaquina = new JugadorMaquina(ancho, alto, tactica, flota);
         this.estado = EstadoFactory.crearEstadoBatalla(EstadoTipo.PREPARACION, this);
-
-        jugadorMaquina.desplegarAleatorio(flota);
     }
 
     protected void cambiarEstado(EstadoTipo tipo) throws BattleException {
@@ -135,7 +136,7 @@ public class Batalla extends Observable {
 
     // la batalla ejecuta los turnos por experto, el estado los llama.
     protected Disparo hacerTurnoHumano(Ronda r, int coorX, int coorY) throws BattleException {
-        return r.turnoHumano(jugadorMaquina, new Celda(coorY, coorX));
+        return r.turnoHumano(jugadorHumano, jugadorMaquina, new Celda(coorY, coorX));
     }
 
     protected Disparo hacerTurnoMaquina(Ronda r) throws BattleException {

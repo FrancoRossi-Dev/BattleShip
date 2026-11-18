@@ -13,6 +13,10 @@ public abstract class Jugador {
         this.oceano = new Oceano(ancho, alto);
     }
 
+    // polimórfico: el humano dispara a la celda que indicó el usuario;
+    // la máquina no recibe celda (llega null) y la elige con su táctica
+    public abstract Disparo disparar(Jugador rival, Celda indicada) throws BattleException;
+
     public int partesImpactadas() {
         return oceano.partesImpactadas();
     }
@@ -32,14 +36,10 @@ public abstract class Jugador {
 
     public Disparo recibirDisparo(Celda o) throws BattleException {
         return oceano.recibirDisparo(o);
-    };
+    }
 
     public void desplegarBarco(TipoBarco b, int coorX, int coorY, String orientacion) throws BattleException {
         oceano.desplegarBarco(b, coorX, coorY, orientacion);
-    }
-
-    protected void vaciarOceano() {
-        oceano = new Oceano(oceano.getAncho(), oceano.getAlto());
     }
 
     public Barco getUltimoBarcoDesplegado() {

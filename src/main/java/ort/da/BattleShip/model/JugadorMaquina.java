@@ -9,25 +9,33 @@ public class JugadorMaquina extends Jugador {
 
     private HistorialDisparos historial;
 
-    public JugadorMaquina(int ancho, int alto, TacticaTipo tactica) {
-        super(ancho, alto);
-        this.tactica = TacticaFactory.crearTactica(tactica);
-        this.historial = new HistorialDisparos(ancho, alto);
-    }
-
-    public Celda elegirObjetivo() throws BattleException {
-        if (historial.estaCompleto()) throw new BattleException("No quedan celdas libres para disparar");
-        return tactica.elegirCelda(historial);
-    }
-
     private static final int MAX_DESPLIEGUES = 100;
     private static final int MAX_INTENTOS_POR_BARCO = 200;
 
+    // la máquina se crea con su flota ya desplegada al azar
+    public JugadorMaquina(int ancho, int alto, TacticaTipo tactica, Flota flota) throws BattleException {
+        super(ancho, alto);
+        this.tactica = TacticaFactory.crearTactica(tactica);
+        this.historial = new HistorialDisparos(ancho, alto);
+        desplegarFlota(flota);
+    }
+
+    // no usa la celda indicada: la elige su táctica y después aprende del resultado
+    @Override
+    public Disparo disparar(Jugador rival, Celda indicada) throws BattleException {
+        if (historial.estaCompleto()) throw new BattleException("No quedan celdas libres para disparar");
+        Disparo d = rival.recibirDisparo(tactica.elegirCelda(historial));
+        historial.agregar(d);
+        // la táctica es la misma toda la batalla; si tiene modos (caza y ataque), ella decide si cambia
+        tactica.registrarDisparo(d);
+        return d;
+    }
+
     // si un barco ya no entra, los anteriores lo bloquearon: se empieza de nuevo con el océano vacío
-    public void desplegarAleatorio(Flota flota) throws BattleException {
+    private void desplegarFlota(Flota flota) throws BattleException {
         for (int despliegue = 0; despliegue < MAX_DESPLIEGUES; despliegue++) {
             if (ubicarTodos(flota)) return;
-            vaciarOceano();
+            getOceano().vaciar();
         }
         throw new BattleException("No se pudo desplegar la flota enemiga");
     }
@@ -53,13 +61,6 @@ public class JugadorMaquina extends Jugador {
             }
         }
         return false;
-    }
-
-    public void agregarAlHistorial(Disparo d) throws BattleException {
-        if (d == null) throw new BattleException("Disparo invalido");
-        historial.agregar(d);
-        // la táctica es la misma toda la batalla; si tiene modos (caza y ataque), ella decide si cambia
-        tactica.registrarDisparo(d);
     }
 
 }

@@ -167,8 +167,8 @@ classDiagram
         -int alto
         -EstadoBatalla estado
         -Flota flota
-        -JugadorHumano jugadorHumano
-        -JugadorMaquina jugadorMaquina
+        -Jugador jugadorHumano
+        -Jugador jugadorMaquina
         -List~Ronda~ rondas
         +desplegarBarco(int x, int y, String orientacion)
         +librarBatalla()
@@ -263,6 +263,7 @@ classDiagram
     class Jugador {
         <<abstract>>
         -Oceano oceano
+        +disparar(Jugador rival, Celda indicada)* Disparo
         +desplegarBarco(TipoBarco, int x, int y, String orientacion)
         +recibirDisparo(Celda) Disparo
         +partesImpactadas() int
@@ -270,16 +271,19 @@ classDiagram
         +getCeldas() List~Celda~
         +getBarcosHundidos() List~Barco~
         +getUltimoBarcoDesplegado() Barco
-        ~vaciarOceano()
     }
-    class JugadorHumano
+    class JugadorHumano {
+        +disparar(Jugador rival, Celda indicada) Disparo
+    }
     class JugadorMaquina {
         -TacticaInterfaz tactica
         -HistorialDisparos historial
-        +elegirObjetivo() Celda
-        +desplegarAleatorio(Flota)
-        +agregarAlHistorial(Disparo)
+        +JugadorMaquina(int ancho, int alto, TacticaTipo, Flota)
+        +disparar(Jugador rival, Celda indicada) Disparo
+        -desplegarFlota(Flota)
     }
+    note for Jugador "disparar es polimórfico: el humano dispara a la celda indicada por el usuario; la máquina la elige con su táctica"
+    note for JugadorMaquina "se crea con su flota desplegada al azar"
     class Oceano {
         -int ancho
         -int alto
@@ -295,6 +299,7 @@ classDiagram
         +flotaHundida() boolean
         +getBarcosHundidos() List~Barco~
         +getUltimoBarcoDesplegado() Barco
+        +vaciar()
     }
     class Celda {
         -int fila
@@ -333,8 +338,8 @@ classDiagram
     class Ronda {
         -Disparo disparoHumano
         -Disparo disparoMaquina
-        +turnoHumano(Jugador rival, Celda objetivo) Disparo
-        +turnoMaquina(JugadorMaquina, Jugador rival) Disparo
+        +turnoHumano(Jugador humano, Jugador rival, Celda indicada) Disparo
+        +turnoMaquina(Jugador maquina, Jugador rival) Disparo
     }
     class Disparo {
         -Celda celda
@@ -355,9 +360,11 @@ classDiagram
     }
 
     Batalla "1" *-- "1" Flota : configuración
-    Batalla "1" *-- "1" JugadorHumano
-    Batalla "1" *-- "1" JugadorMaquina
+    Batalla "1" *-- "2" Jugador : humano y máquina
+    Batalla ..> JugadorHumano : crea
+    Batalla ..> JugadorMaquina : crea
     Batalla "1" *-- "0..*" Ronda
+    Ronda ..> Jugador : disparar
     Jugador <|-- JugadorHumano
     Jugador <|-- JugadorMaquina
     Jugador "1" *-- "1" Oceano
@@ -383,9 +390,10 @@ classDiagram
 
     class JugadorMaquina {
         -TacticaInterfaz tactica
-        +elegirObjetivo() Celda
-        +agregarAlHistorial(Disparo)
+        -HistorialDisparos historial
+        +disparar(Jugador rival, Celda indicada) Disparo
     }
+    note for JugadorMaquina "disparar: tactica.elegirCelda(historial), dispara, agrega al historial y tactica.registrarDisparo"
     class TacticaInterfaz {
         <<interface>>
         +getNombre() String
