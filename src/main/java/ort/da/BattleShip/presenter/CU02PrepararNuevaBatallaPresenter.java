@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 // CU02: PREPARAR UNA NUEVA BATALLA
+// Paso 1: se completa el formulario (lugar, táctica, océano y flota) y se crea la batalla "En preparación".
+// Paso 2: se ubican los barcos uno por uno en aguas propias; se puede salir y retomar desde la sala.
 @RestController
 @RequestMapping("/nuevaBatalla")
 @Scope("session")
@@ -44,149 +46,97 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         this.conexionNavegador = conexion;
     }
 
+    // ===================== OBSERVADOR (SSE) =====================
+
+    // abre el canal SSE por el que el servidor le avisa cambios a la vista
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter registrarSSE() {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
     }
 
-    /*
-     * 1. Indica que desea iniciar una nueva batalla
-     * 2. Solicita completar los siguientes datos:
-     * - Lugar del combate:
-     * - Nombre
-     * - Táctica de juego (despliega las tácticas definidas)
-     * - Océano:
-     * - Cantidad de celdas horizontales
-     * - Cantidad de celdas verticales
-     * - Flota:
-     * Se muestran los tipos de barcos definidos y se permite ingresar una cantidad
-     * para cada uno de ellos. Mínimo 0, máximo 6.
-     * - Muestra el botón “Continuar”
-     * 
-     */
+    // cada barco ubicado se reenvía por SSE; si la batalla pasa a combate
+    // (desde esta u otra sesión) la vista se manda a CU03
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        if(evento.equals(Batalla.Eventos.BARCO_DESPLEGADO)) {
+            Barco b = ((Batalla) origen).getUltimoBarcoColocado();
+            conexionNavegador.enviarJSON(Commands.create(mostrarBarcoUbicado(b), barcosPendientes()));
+        }
+        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
+            try {
+                conexionNavegador.enviarJSON(Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla))));
+            } catch (BattleException e) {
+                System.out.println("Error al pasar a librar batalla: " + e.getMessage());
+            }
+        }
+    }
 
+    // ===================== ENDPOINTS =====================
+
+    // la vista se abrió. Sin idBatalla: batalla nueva, se muestra el formulario con tácticas y tipos de barco.
+    // Con idBatalla: se retoma el despliegue donde quedó (tablero, barcos ya ubicados y pendientes);
+    // si otra sesión ya la empezó, se manda directo a librar batalla (CU03)
     @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam(required = false) Integer idBatalla) throws BattleException {
-        // se cargan los desplegables para generar una nueva vista
         listaDeTacticas = f.getTacticas();
         listaDeTiposDeBarco = f.getTiposBarco();
 
-        // si el usuario no ingresa una id, se crea una nueva
         if (idBatalla == null) {
             batalla = null;
             return Commands.create(listaTacticas(), listaTiposBarco(), habilitarFormulario(true));
         }
-        // si ingresa una id al conectarse a este endpoint, se retoma el proceso de creción
+
         batalla = f.getBatalla(idBatalla);
-        // otra sesión ya la libró: el despliegue terminó
-        if (!batalla.enPreparacion()) return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
+        if (!batalla.enPreparacion())
+            return Commands.create(
+                CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
+
         batalla.agregarObservador(this);
 
-        Commands comandos = Commands.create(habilitarFormulario(false), lugarBatalla(), inicializarTablero(),
-                mostrarTableroPropio(), barcosPendientes());
-        if (batalla.flotaDesplegada()) comandos.add(confirmarBatallaLista());
-        return comandos;
+        // si la flota ya estaba desplegada, barcosPendientes llega vacío y la vista abre el diálogo
+        return Commands.create(
+            habilitarFormulario(false),
+            lugarBatalla(),
+            inicializarTablero(),
+            mostrarTableroPropio(),
+            barcosPendientes()
+        );
     }
-    /*
-     * 3. Ingresa los datos requeridos e indica la opción Continuar.
-     * 4. La batalla es incorporada a la lista en la sala de operaciones con el
-     * estado
-     * “En preparación”.
-     */
 
-    /*
-     * Flujos alternativos
-     * 3. Si el nombre del lugar de combate no es proporcionado, el sistema asignara
-     * un texto aleatorio de 6 caracteres alfabéticos
-     * en mayúsculas.
-     * 3. Si el nombre del lugar de combate ya existe se muestra el mensaje “No se
-     * puede librar más de una batalla en el mismo
-     * lugar, cambie de nombre”.
-     * 3. Si alguna cantidad de celdas del océano es menor a 6 o mayor a 12, se
-     * indica un error específico.
-     * 3. Si se ingresan más de 6 unidades de un tipo de embarcación, se indica un
-     * error específico.
-     * 3. Si todos los tipos de naves tienen 0 unidades, se indica un error
-     * específico.
-     * 3. Si el tamaño de la flota no entra en el océano, se indica un error
-     * específico. Para eso, el sistema debe validar que la
-     * densidad de ocupación de un océano sea menor al 25%, es decir, los barcos
-     * colocados ocupan menos de la cuarta parte
-     * de las celdas disponibles.
-     * (cantidad de celdas de la flota / cantidad de celdas del océano) < 0.25
-     */
-
-    /*
-     * Muestra:
-     * - Los océanos con el título “Desplegando la Flota”, lo cual permite al
-     * usuario
-     * ubicar sus barcos en su océano de aguas propias.
-     * - El lugar del combate.
-     * - La lista de barcos disponibles ordenados por longitud, de mayor a menor. Si
-     * en la configuración de la flota se ingresó una cantidad mayor a 1 en un tipo
-     * de barco, se muestra el nombre del barco tantas veces como esa cantidad.
-     * El primer barco de la lista debe estar siempre seleccionado.
-     * - La opción de elegir horizontal o vertical. Horizontal debe estar
-     * seleccionado
-     * por defecto.
-     * - Mientras haya un elemento en la lista de barcos disponibles, se muestra la
-     * leyenda de acción “Posicione su [Tipo de barco] en forma [Orientación]”. Por
-     * ejemplo “Posicione su destructor en forma vertical”.
-     * - Un botón “Librar batalla”.
-     * - Un botón “Volver a la sala de operaciones”.
-     */
-
+    // botón "Continuar": crea la batalla con los datos del formulario (el modelo valida y avisa errores),
+    // la agrega a la sala de operaciones y pasa al paso de desplegar la flota
     @PostMapping("/crearBatalla")
     public Commands crearBatalla(
             @RequestParam(defaultValue = "") String lugar,
             @RequestParam(defaultValue = "") String posTactica,
-            // los números llegan como texto: si no son números se informa con BattleException
             @RequestParam(defaultValue = "") String ancho,
             @RequestParam(defaultValue = "") String alto,
-            // una cantidad por tipo de barco, en el orden de listaTiposBarco ("1,0,2,...")
             @RequestParam(defaultValue = "") String cantidades) throws BattleException {
 
-        // crea batalla a partir de los argumentos
-        Batalla nueva = new Batalla(lugar, tacticaEn(numero(posTactica, "la táctica")),
-                numero(ancho, "las celdas horizontales"), numero(alto, "las celdas verticales"),
-                listaDeTiposDeBarco, cantidadesPorTipo(cantidades));
+        Batalla nueva = new Batalla(
+            lugar,
+            tacticaEn(numero(posTactica, "la táctica")),
+            numero(ancho, "las celdas horizontales"),
+            numero(alto, "las celdas verticales"),
+            listaDeTiposDeBarco,
+            cantidadesPorTipo(cantidades));
 
-        // envía a la fachada para agregarla a la lista
         f.agregar(nueva);
 
-        // persistencia
         batalla = nueva;
         batalla.agregarObservador(this);
 
-        return Commands.create(habilitarFormulario(false), lugarBatalla(), inicializarTablero(),
-                barcosPendientes());
+        return Commands.create(
+            habilitarFormulario(false),
+            lugarBatalla(),
+            inicializarTablero(),
+            barcosPendientes()
+        );
     }
 
-    /*
-     * 5. Selecciona (haciendo click) una coordenada en el océano de aguas propias.
-     * 6.
-     * - El barco seleccionado es ubicado en el océano con la posición indicada. La
-     * celda seleccionada corresponde a la proa del barco, es decir, el extremo
-     * izquierdo (si el barco se coloca horizontalmente) o el extremo inferior (si el
-     * barco se acomoda verticalmente).
-     * - El barco es eliminado de la lista de barcos disponibles y el siguiente
-     * elemento es seleccionado. La leyenda de acción se actualiza
-     * adecuadamente. (Si no quedan barcos disponibles para ubicar, la leyenda de
-     * acción muestra “Batalla preparada”
-     * Los pasos 5 y 6 continúan hasta que todos los barcos están posicionados.
-     *
-     * Flujos alternativos
-     * 5. Si el barco no puede ser ubicado en el océano, se indica un error y se ignora el intento. Un barco no puede ser ubicado
-     * en el océano de aguas propias, si se da alguna de las siguientes condiciones:
-     * - Parte del barco cae fuera de los límites del océano.
-     * - Parte del barco colisiona (se superpone) con un barco ya ubicado.
-     * - Parte del barco toca al menos una celda con un barco ya ubicado. (Siempre debe haber una celda con agua
-     * entre dos barcos).
-     * 5. Si el usuario interactúa con el océano de aguas enemigas durante este caso de uso, se muestra el mensaje “No puede
-     * ubicar barcos en aguas enemigas”
-     */
-
+    // clic en aguas propias: ubica el primer barco pendiente en esa celda con la orientación elegida.
+    // Si no entra o toca otro barco, el modelo avisa el error. Devuelve el barco ubicado y los que faltan
     @PostMapping("/desplegarFlota")
     public Commands desplegarFlota(
             // nombres que envía BattleShipBoard al hacer clic: vertical = fila (Y), horizontal = columna (X)
@@ -194,51 +144,31 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
             @RequestParam int coordenadaHorizontal,
             @RequestParam String orientacion) throws BattleException {
 
-        if (batalla == null) return Commands.create(CommonCommands.redirigir("index.html"));
+        if (batalla == null) return
+            Commands.create(CommonCommands.redirigir("index.html"));
 
-        // el barco ubicado llega a la vista solo por SSE, desde actualizar() (evento BARCO_DESPLEGADO).
-        // preguntar si es necesario devolver tambien aca
-        // siempre se ubica el primer barco pendiente (el seleccionado en la vista)
         batalla.desplegarBarco(coordenadaHorizontal, coordenadaVertical, orientacion);
 
-        // la leyenda de acción la arma el cliente; acá solo se avisa cuando no quedan barcos por ubicar
-        // con la flota completa el tablero sigue habilitado: un nuevo clic lo rechaza el modelo
-        // ("Todos los barcos ya fueron posicionados")
-        if (batalla.flotaDesplegada()) {
-            return Commands.create(confirmarBatallaLista());
-        }
-
-        return Commands.create();
+        return Commands.create(
+            mostrarBarcoUbicado(batalla.getUltimoBarcoColocado()),
+            barcosPendientes()
+        );
     }
 
-
-
-
-    // verificar si es necesario
+    // clic en aguas enemigas: no se permite, solo muestra el error
     @PostMapping("/aguasEnemigas")
     public Commands aguasEnemigas() throws BattleException {
         throw new BattleException("No puede ubicar barcos en aguas enemigas");
     }
 
-    /*
-     * 7. Opcionalmente selecciona “Volver a la sala de operaciones”
-     * 8. Ejecuta el CU01
-     */
-
+    // botón "Volver a la sala de operaciones": la batalla queda guardada como está
     @PostMapping("/volverASala")
     public Commands volverASala() {
         return Commands.create(CommonCommands.redirigir("index.html"));
     }
 
-    /*
-     * 8. Opcionalmente selecciona “Librar batalla”
-     * 9. Ejecuta el CU03
-     *
-     * Flujos alternativos
-     * 8. Si el usuario intenta librar batalla antes de posicionar todos sus barcos, se muestra el mensaje “Debe posicionar todos
-     * sus barcos primero”.
-     */
-
+    // botón "Librar batalla": inicia el combate y pasa a CU03.
+    // Si faltan barcos por ubicar el modelo lanza el error y no se redirige
     @PostMapping("/librarBatalla")
     public Commands librarBatalla() throws BattleException {
         if (batalla == null)
@@ -248,6 +178,7 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla)));
     }
 
+    // la vista se cerró: deja de escuchar a la batalla
     @PostMapping("/vistaDesconectada")
     public void vistaDesconectada() {
         if (batalla != null) {
@@ -255,49 +186,7 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         }
     }
 
-    private int numero(String texto, String campo) throws BattleException {
-        try {
-            return Integer.parseInt(texto.trim());
-        } catch (NumberFormatException e) {
-            throw new BattleException("Debe ingresar un número entero en " + campo);
-        }
-    }
-
-    private int[] cantidadesPorTipo(String texto) throws BattleException {
-        String[] partes = texto.split(",", -1);
-        if (partes.length != listaDeTiposDeBarco.size())
-            throw new BattleException("Debe ingresar una cantidad para cada tipo de barco");
-        int[] cantidades = new int[partes.length];
-        for (int i = 0; i < partes.length; i++) {
-            cantidades[i] = numero(partes[i], "la cantidad de " + listaDeTiposDeBarco.get(i).getNombre());
-        }
-        return cantidades;
-    }
-
-    // funcion helper para coordinar posicion de tacticas
-    private TacticaTipo tacticaEn(int pos) throws BattleException {
-        if (pos < 0 || pos >= listaDeTacticas.size())
-            throw new BattleException("Táctica desconocida");
-        return listaDeTacticas.get(pos);
-    }
-
-    /*
-     * CU02: PREPARAR UNA NUEVA BATALLA
-     * Este caso de uso cuenta con dos pasos. En el primero se introducen y validan datos básicos para “Preparar una nueva
-     * batalla”. Si el usuario no logra superar las validaciones, si abandona la vista o si selecciona “Volver a la sala de
-     * operaciones” la información se pierde.
-     *
-     * Una vez que se avanza al segundo paso (“Desplegando la flota”), se conserva la situación actual de la nueva batalla. De
-     * este modo, si el usuario abandona la vista o selecciona “Volver a la sala de operaciones”, puede volver a “Entrar” y
-     * continuar con la configuración desde el punto en que la dejó.
-     *
-     * Postcondiciones
-     *
-     * El océano propio es establecido para la batalla con la disposición de la flota designado por el usuario.
-     * El océano del enemigo es establecido con una distribución aleatoria, pero con las mismas reglas.
-     */
-
-    // COMMANDS
+    // ===================== COMMANDS =====================
 
     // la vista usa la posición de cada uno como valor del formulario
     private Command listaTacticas() {
@@ -334,31 +223,40 @@ public class CU02PrepararNuevaBatallaPresenter implements Observador {
         return new Command("tableroPropio", new CeldasDto(batalla.celdasPropias(), true));
     }
 
-    // tras cada clic: solo las celdas del barco recién ubicado
+    // tras cada clic: solo las celdas del barco recién ubicado.
+    // compartido entre la respuesta de desplegarFlota y el observador
     private Command mostrarBarcoUbicado(Barco b) {
         return new Command("barcoUbicado", new CeldasDto(b.getCeldas(), true));
     }
 
-    // el diálogo solo necesita el lugar; como en Agenda, un dato único va directo sin DTO.
-    // la vista pregunta y llama a /librarBatalla o /volverASala
-    private Command confirmarBatallaLista() {
-        return new Command("confirmarBatallaLista", batalla.getLugar());
+    // ===================== UTILIDADES =====================
+
+    // pasa el texto del formulario a número; si no lo es, avisa en qué campo está el error
+    private int numero(String texto, String campo) throws BattleException {
+        try {
+            return Integer.parseInt(texto.trim());
+        } catch (NumberFormatException e) {
+            throw new BattleException("Debe ingresar un número entero en " + campo);
+        }
     }
 
-    @Override
-    public void actualizar(Observable origen, Object evento) {
-        if(evento.equals(Batalla.Eventos.BARCO_DESPLEGADO)) {
-            Barco b = ((Batalla) origen).getUltimoBarcoColocado();
-            conexionNavegador.enviarJSON(Commands.create(mostrarBarcoUbicado(b), barcosPendientes()));
+    // convierte el texto "1,0,2,..." del formulario en una cantidad por tipo de barco,
+    // en el mismo orden que listaDeTiposDeBarco; informa si falta alguna o no es un número
+    private int[] cantidadesPorTipo(String texto) throws BattleException {
+        String[] partes = texto.split(",", -1);
+        if (partes.length != listaDeTiposDeBarco.size())
+            throw new BattleException("Debe ingresar una cantidad para cada tipo de barco");
+        int[] cantidades = new int[partes.length];
+        for (int i = 0; i < partes.length; i++) {
+            cantidades[i] = numero(partes[i], "la cantidad de " + listaDeTiposDeBarco.get(i).getNombre());
         }
-        // otra sesión libró la batalla (preparación -> en combate): esta vista pasa a CU03
-        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
-            try {
-                conexionNavegador.enviarJSON(Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + f.idDe(batalla))));
-            } catch (BattleException e) {
-                System.out.println("Error al pasar a librar batalla: " + e.getMessage());
-            }
-        }
+        return cantidades;
+    }
+
+    // la vista manda la posición de la táctica en el desplegable; acá se busca cuál es
+    private TacticaTipo tacticaEn(int pos) throws BattleException {
+        if (pos < 0 || pos >= listaDeTacticas.size())
+            throw new BattleException("Táctica desconocida");
+        return listaDeTacticas.get(pos);
     }
 }
-

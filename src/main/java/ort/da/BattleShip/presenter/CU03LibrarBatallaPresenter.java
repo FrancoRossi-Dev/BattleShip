@@ -23,7 +23,9 @@ import ort.da.BattleShip.observador.Observador;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
-// CU03: LIBRAR BATALLA 
+// CU03: LIBRAR BATALLA
+// Se juega por rondas: el jugador dispara a aguas enemigas y la máquina responde enseguida (ronda atómica),
+// hasta que una flota queda hundida. También sirve para ver batallas ya ganadas o perdidas.
 @RestController
 @RequestMapping("/librarBatalla")
 @Scope("session")
@@ -38,32 +40,36 @@ public class CU03LibrarBatallaPresenter implements Observador {
         this.conexionNavegador = conexion;
     }
 
+    // ===================== OBSERVADOR (SSE) =====================
+
+    // abre el canal SSE por el que el servidor le avisa cambios a la vista
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter registrarSSE() {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
     }
 
-    /*
-     1. Muestra: 
-    - El nombre del lugar de la batalla 
-    - El numero de ronda (comenzando con 1 e incrementándose cada 
-    vez que toca el turno al humano) 
-    - El estado de la batalla. 
-    - Los océanos con el siguiente contenido: 
-    - La disposición de barcos en aguas propias. 
-    - Los disparos efectuados (si hubiera) indicando si fueron agua o 
-    impacto tanto en aguas propias como enemigas. 
-    - La lista de bajas enemigas en formato “{#} {#} {#}...” donde cada 
-    elemento entre llaves representa un barco hundido y el valor # 
-    corresponde al tamaño de este. La lista se debe mostrar en la misma 
-    secuencia en que fueron hundidos (cronológicamente) 
+    // cada ronda jugada (en esta u otra sesión) se reenvía por SSE;
+    // cuando la batalla termina se muestra el nuevo estado y, si se perdió, los barcos enemigos
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        if (evento.equals(Batalla.Eventos.RONDA_FINALIZADA)) {
+            Ronda r = ((Batalla) origen).getUltimaRonda();
+            conexionNavegador.enviarJSON(Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda()));
+        }
+        // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda).
+        // tableroEnemigo() ya decide si revelar los barcos (solo si se perdió)
+        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
+            conexionNavegador.enviarJSON(Commands.create(estadoBatalla(), numeroRonda(), tableroEnemigo()));
+        }
+    }
 
-    - Un botón “Volver a la sala de operaciones” 
-    */
+    // ===================== ENDPOINTS =====================
+
+    // la vista se abrió: carga la batalla indicada y muestra lugar, estado, ronda, los dos océanos
+    // con los disparos hechos y las bajas enemigas. Sin idBatalla se vuelve a la sala
     @PostMapping("/vistaConectada")
     public Commands vistaConectada(@RequestParam(required = false) Integer idBatalla) throws BattleException {
-        // como Agenda con el usuario no logueado: sin batalla indicada se vuelve a la sala
         if (idBatalla == null) return Commands.create(CommonCommands.redirigir("index.html"));
         batallaActual = f.getBatalla(idBatalla);
         batallaActual.agregarObservador(this);
@@ -74,6 +80,29 @@ public class CU03LibrarBatallaPresenter implements Observador {
                 tableroPropio(), tableroEnemigo(), bajasEnemigas());
     }
 
+    // clic en aguas enemigas: se juega una ronda (disparo del jugador y respuesta de la máquina).
+    // Si la celda ya fue disparada o la batalla terminó, el modelo avisa el error.
+    // Devuelve los dos disparos, las bajas y la ronda; el fin de la batalla llega por SSE
+    @PostMapping("/jugarRonda")
+    public Commands jugarRonda(@RequestParam int coordenadaVertical, @RequestParam int coordenadaHorizontal) throws BattleException {
+        // nombres que envía BattleShipBoard al hacer clic: vertical = fila (Y), horizontal = columna (X)
+        Ronda r = batallaActual.jugarRonda(coordenadaHorizontal, coordenadaVertical);
+        return Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda());
+    }
+
+    // clic en aguas propias: no se permite, solo muestra el error
+    @PostMapping("/aguasPropias")
+    public Commands aguasPropias() throws BattleException {
+        throw new BattleException("No puede disparar a sus propias aguas");
+    }
+
+    // botón "Volver a la sala de operaciones": la batalla queda pausada tal como está
+    @PostMapping("/volverASala")
+    public Commands volverASala() {
+        return Commands.create(CommonCommands.redirigir("index.html"));
+    }
+
+    // la vista se cerró: deja de escuchar a la batalla
     @PostMapping("/vistaDesconectada")
     public void vistaDesconectada() {
         if (batallaActual != null) {
@@ -81,123 +110,7 @@ public class CU03LibrarBatallaPresenter implements Observador {
         }
     }
 
-
-    /*
-    2. Selecciona (haciendo click) una 
-    coordenada en el océano de “Aguas 
-    enemigas” 
-    3. La celda es marcada como “agua” o “impacto” según corresponda. 
-    Si un barco es hundido, se agrega a la lista de “Bajas enemigas”. 
-    Si la flota enemiga es hundida, fin de la batalla. 
-    4. Siguiendo la táctica de juego configurada, el oponente realiza su 
-    correspondiente disparo, que es reflejado en el océano de “Aguas 
-    propias”
-
-    Si la flota propia es hundida, fin de la batalla. 
-    Esta secuencia se repite hasta que una flota es completamente hundida. 
-
-    Flujos alternativos 
-    2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
-    2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
- 
-    */
-   
-    // los nombres de parámetros son los que envía BattleShipBoard al hacer clic.
-    // vertical = fila (Y), horizontal = columna (X)
-    @PostMapping("/jugarRonda")
-    public Commands jugarRonda(@RequestParam int coordenadaVertical, @RequestParam int coordenadaHorizontal) throws BattleException {
-        // como crearContacto en Agenda: la ronda vuelve en la respuesta y también llega por SSE desde
-        // actualizar() con los mismos comandos (se dibuja dos veces, el resultado es el mismo).
-        // El fin de la batalla llega solo por SSE (CAMBIO_ESTADO)
-        Ronda r = batallaActual.jugarRonda(coordenadaHorizontal, coordenadaVertical);
-        return Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda());
-    }
-
-    // flujo alternativo 2: clic en aguas propias
-    @PostMapping("/aguasPropias")
-    public Commands aguasPropias() throws BattleException {
-        throw new BattleException("No puede disparar a sus propias aguas");
-    }
-     
-    /*
-    5. Opcionalmente selecciona “Volver a la 
-    sala de operaciones” 
-    6. La batalla se pausa en la situación actual y se ejecuta el CU01. 
-    Postcondiciones 
-    */
-
-
-    @PostMapping("/volverASala")
-    public Commands volverASala() {
-        // la batalla queda pausada tal como está: no hay nada que guardar
-        return Commands.create(CommonCommands.redirigir("index.html"));
-    }
-    
-
-    /*
-    CU03: LIBRAR BATALLA 
-    Las batallas que se encuentran en combate se desarrollan en una serie de rondas hasta que una de las flotas es hundida. 
-    En cada ronda, el jugador humano realiza un disparo. Si ese disparo no provoca que la batalla termine con la victoria del 
-    jugador, la máquina realiza inmediatamente su propio disparo como respuesta. 
-    
-    Desde el punto de vista del jugador, ambos disparos y sus respectivos efectos forman una única operación atómica: la 
-    ronda se completa íntegramente y no puede ser dividida ni interrumpida entre ambos disparos. Por ejemplo, al hacer clic 
-    sobre una celda de las aguas enemigas, el jugador verá inmediatamente los dos disparos correspondientes a esa ronda: 
-    primero el suyo y, a continuación, el de la máquina. 
-    
-    Nota: este caso de uso no solo se ejecuta para batallas en combate, en donde ocurren rondas de disparos, también se 
-    puede acceder a esta vista para ver batallas ya ganadas o perdidas. 
-    
-  
-Flujo normal 
- 
-Usuario Aplicación 
- 1. Muestra: 
-    - El nombre del lugar de la batalla 
-    - El numero de ronda (comenzando con 1 e incrementándose cada 
-    vez que toca el turno al humano) 
-    - El estado de la batalla. 
-    - Los océanos con el siguiente contenido: 
-     - La disposición de barcos en aguas propias. 
-     - Los disparos efectuados (si hubiera) indicando si fueron agua o 
-impacto tanto en aguas propias como enemigas. 
-     - La lista de bajas enemigas en formato “{#} {#} {#}...” donde cada 
-elemento entre llaves representa un barco hundido y el valor # 
-corresponde al tamaño de este. La lista se debe mostrar en la misma 
-secuencia en que fueron hundidos (cronológicamente) 
-- Un botón “Volver a la sala de operaciones” 
-
-
-2. Selecciona (haciendo click) una 
-coordenada en el océano de “Aguas 
-enemigas” 
-3. La celda es marcada como “agua” o “impacto” según corresponda. 
-Si un barco es hundido, se agrega a la lista de “Bajas enemigas”. 
-Si la flota enemiga es hundida, fin de la batalla. 
- 4. Siguiendo la táctica de juego configurada, el oponente realiza su 
-correspondiente disparo, que es reflejado en el océano de “Aguas 
-propias”
-Si la flota propia es hundida, fin de la batalla. 
-Esta secuencia se repite hasta que una flota es completamente hundida. 
-
-5. Opcionalmente selecciona “Volver a la 
-sala de operaciones” 
-6. La batalla se pausa en la situación actual y se ejecuta el CU01. 
- Postcondiciones 
- 
-- En el campo de “Estado de la batalla” se muestra la leyenda “Ganada” o “Perdida” según corresponda. 
-- Idénticamente, en la sala de operaciones la batalla pasa a estado “Ganada” o “Perdida”. 
-- Si la batalla fue perdida, se revelan las celdas de los barcos o fragmentos de barcos que no fueron descubiertos en las 
-aguas enemigas.  
- 
-Flujos alternativos 
- 2. Si el jugador intenta seleccionar una celda de su océano de aguas amigas, se indica error y la acción se ignora. 
-2. Si el jugador selecciona una celda que ya disparo anteriormente, se indica error y la acción se ignora.
-    
-    
-    */
-
-// COMANDS
+    // ===================== COMMANDS =====================
 
     // como en Agenda (nombreUsuario, cantidadContactos), cada dato simple va en su propio comando
     private Command lugarBatalla() {
@@ -242,19 +155,6 @@ Flujos alternativos
     // compartido entre la respuesta de jugarRonda y el observador; los dos disparos van juntos (ronda atómica)
     private Command rondaJugada(Ronda r) {
         return new Command("rondaJugada", new RondaDto(r));
-    }
-
-    @Override
-    public void actualizar(Observable origen, Object evento) {
-        if (evento.equals(Batalla.Eventos.RONDA_FINALIZADA)) {
-            Ronda r = ((Batalla) origen).getUltimaRonda();
-            conexionNavegador.enviarJSON(Commands.create(rondaJugada(r), bajasEnemigas(), numeroRonda()));
-        }
-        // CAMBIO_ESTADO llega después de RONDA_FINALIZADA (ver EstadoEnCombate.jugarRonda).
-        // tableroEnemigo() ya decide si revelar los barcos (solo si se perdió)
-        if (evento.equals(Batalla.Eventos.CAMBIO_ESTADO)) {
-            conexionNavegador.enviarJSON(Commands.create(estadoBatalla(), numeroRonda(), tableroEnemigo()));
-        }
     }
 
 }

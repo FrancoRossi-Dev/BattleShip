@@ -18,13 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 
+// CU01: SALA DE OPERACIONES
+// Vista principal: muestra todas las batallas con sus totales y permite crear una nueva o entrar a una.
+// Puede estar abierta en varias sesiones a la vez y todas ven lo mismo (se actualiza por SSE).
 @RestController
 @RequestMapping("/salaOperaciones")
 @Scope("session")
 public class CU01SalaOperacionesPresenter implements Observador {
 
     private Facade f;
-
 
     private ConexionNavegador conexionNavegador;
 
@@ -33,33 +35,42 @@ public class CU01SalaOperacionesPresenter implements Observador {
         this.conexionNavegador = conexion;
     }
 
+    // ===================== OBSERVADOR (SSE) =====================
+
+    // abre el canal SSE por el que el servidor le avisa cambios a la vista
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter registrarSSE()
     {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
     }
-    
-    @Override 
+
+    // cuando cambia alguna batalla (en cualquier sesión) se reenvía la lista actualizada por SSE
+    @Override
     public void actualizar(Observable origen, Object evento) {
         if (Facade.Eventos.ACTUALIZACION_DE_LISTA.equals(evento)) {
             conexionNavegador.enviarJSON(Commands.create(listaBatallas()));
         }
     }
 
+    // ===================== ENDPOINTS =====================
+
+    // la vista se abrió: se suscribe a la fachada para enterarse de cambios
+    // y devuelve la lista de batallas con los totales de ganadas, perdidas y % de éxito
     @PostMapping("/vistaConectada")
     public Commands vistaConectada() {
         f.agregarObservador(this);
         return Commands.create(listaBatallas());
     }
 
+    // botón "Iniciar nueva batalla": manda a la vista de CU02 sin batalla elegida
     @PostMapping("/nuevaBatalla")
     public Commands nuevaBatalla() {
-        // redirige al endpoint de CU02
         return Commands.create(CommonCommands.redirigir("nuevaBatalla.html"));
     }
 
-    // "Entrar": en preparación se continúa el despliegue (CU02); en combate o finalizada, CU03
+    // botón "Entrar" de una batalla: si sigue en preparación se continúa el despliegue (CU02);
+    // si está en combate o terminada, se va a librar/ver la batalla (CU03)
     @PostMapping("/reanudarBatalla")
     public Commands reanudarBatalla(@RequestParam int idBatalla) throws BattleException {
         Batalla b = f.getBatalla(idBatalla);
@@ -68,45 +79,19 @@ public class CU01SalaOperacionesPresenter implements Observador {
         }
         return Commands.create(CommonCommands.redirigir("librarBatalla.html?idBatalla=" + idBatalla));
     }
-    
+
+    // la vista se cerró: deja de escuchar a la fachada
     @PostMapping("/vistaDesconectada")
     public void vistaDesconectada() {
         f.quitarObservador(this);
     }
-    
-    // COMMANDS
+
+    // ===================== COMMANDS =====================
+
+    // le pregunta a la fachada los datos necesarios para la lista de batallas
     private Command listaBatallas() {
         return new Command("listaBatallas", new TotalBatallasDto(f.getBatallas(),
                 f.cantidadGanadas(), f.cantidadPerdidas(), f.porcentajeExito()));
     }
-    
-    /*
-    CU01: SALA DE OPERACIONES 
-    Esta la vista principal del juego. Este caso de uso puede ejecutarse múltiples veces en simultaneo en diferentes 
-    sesiones/navegadores y siempre debe mostrar la misma información.  
-    
-    Flujo normal 
-    
-    Usuario Aplicación 
-    1. Muestra: 
-    - Total de batallas ganadas: ## 
-    - Total de batallas perdidas: ## 
-    - Éxito de la campaña: ##% (porcentaje que refleja las batallas ganadas sobre el total de batallas) 
-    
-    - Lista de las batallas con los siguientes datos: 
-    - Lugar del combate 
-    - Dimensiones del océano (ancho x alto) en número de celdas 
-    - Estado (En preparación | En combate | Ganada | Perdida) 
-    - Integridad de la flota propia (partes sanas / tamaño total) 
-    - Integridad de la flota enemiga (partes sanas / tamaño total) 
-    - Una opción “Entrar” (botón o link en cada renglón) 
-    - Opción para “Iniciar nueva batalla”. 
-    2. Opcionalmente selecciona la 
-    opción de Iniciar nueva batalla. 
-    3. Ejecuta el CU02: Preparar una nueva batalla 
-    4. Opcionalmente selecciona la 
-    opción Entrar en una batalla. 
-    4. Ejecuta el CU03: Librar batalla
-    */
-    
+
 }

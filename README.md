@@ -172,11 +172,13 @@ classDiagram
         -List~Ronda~ rondas
         +desplegarBarco(int x, int y, String orientacion)
         +librarBatalla()
-        +jugarRonda(int x, int y) synchronized
+        +jugarRonda(int x, int y) Ronda synchronized
         ~cambiarEstado(EstadoTipo)
-        ~hacerJugarRonda(int x, int y)
+        ~hacerJugarRonda(int x, int y) Ronda
         +barcosPendientes() List~Barco~
         +flotaDesplegada() boolean
+        +flotaMaquinaHundida() boolean
+        +flotaHumanaHundida() boolean
         +enPreparacion() boolean
         +esFinalizada() boolean
         +isGanada() boolean
@@ -190,7 +192,7 @@ classDiagram
         +celdasPropias() List~Celda~
         +celdasEnemigas() List~Celda~
         +bajasEnemigas() List~Barco~
-        +ultimaRonda() Ronda
+        +getUltimaRonda() Ronda
         +getUltimoBarcoColocado() Barco
     }
     class Batalla_Eventos {
@@ -206,7 +208,7 @@ classDiagram
         +getNombre()* String
         ~desplegarBarco(int x, int y, String orientacion)*
         ~librarBatalla()*
-        ~jugarRonda(int x, int y)*
+        ~jugarRonda(int x, int y)* Ronda
         ~flotaDesplegada()* boolean
         ~esFinalizada()* boolean
         ~proximoBarco() Barco
@@ -521,8 +523,10 @@ classDiagram
         <<Component, session>>
         -SseEmitter conexionSSE
         +conectarSSE()
+        +getConexionSSE() SseEmitter
         +cerrarConexion()
         +enviarJSON(Object)
+        +enviarMensaje(String)
     }
     class Observador {
         <<interface>>
@@ -614,6 +618,11 @@ classDiagram
         -String valor
         +CeldaDto(Celda, boolean mostrarBarcos)
     }
+    class RondaDto {
+        -CeldaDto disparoHumano
+        -CeldaDto disparoMaquina
+        +RondaDto(Ronda)
+    }
 
     class CU01SalaOperacionesPresenter
     class CU02PrepararNuevaBatallaPresenter
@@ -621,6 +630,7 @@ classDiagram
 
     TotalBatallasDto *-- "*" BatallaDto
     CeldasDto *-- "*" CeldaDto
+    RondaDto *-- "1..2" CeldaDto : humano, máquina (null si no disparó)
 
     CU01SalaOperacionesPresenter ..> TotalBatallasDto : listaBatallas
     CU02PrepararNuevaBatallaPresenter ..> TacticaDto : listaTacticas
@@ -629,7 +639,7 @@ classDiagram
     CU02PrepararNuevaBatallaPresenter ..> CeldasDto : tableroPropio / barcoUbicado
     CU03LibrarBatallaPresenter ..> InicializarTableroDto : inicializar
     CU03LibrarBatallaPresenter ..> CeldasDto : tableroPropio / tableroEnemigo
-    CU03LibrarBatallaPresenter ..> CeldaDto : mostrarAguasPropias / mostrarAguasEnemigas
+    CU03LibrarBatallaPresenter ..> RondaDto : rondaJugada
 
     BatallaDto ..> Batalla
     TacticaDto ..> TacticaTipo
@@ -637,6 +647,7 @@ classDiagram
     TipoBarcoDto ..> Barco
     InicializarTableroDto ..> Batalla
     CeldaDto ..> Celda
+    RondaDto ..> Ronda
 ```
 
 ### Comandos por presentador
@@ -651,10 +662,9 @@ classDiagram
 | CU02 / CU03 | `inicializar` | `InicializarTableroDto` |
 | CU02 / CU03 | `tableroPropio` | `CeldasDto` |
 | CU02 | `barcoUbicado` | `CeldasDto` |
-| CU02 | `confirmarBatallaLista` | `String` (lugar) |
 | CU03 | `estadoBatalla` | `String` |
 | CU03 | `numeroRonda` | `int` |
 | CU03 | `tableroEnemigo` | `CeldasDto` |
-| CU03 | `mostrarAguasPropias`, `mostrarAguasEnemigas` | `CeldaDto` |
+| CU03 | `rondaJugada` | `RondaDto` |
 | CU03 | `bajasEnemigas` | `String` (`{4} {1} {2}`) |
 | todos | `redirigir` | `String` (URL) |

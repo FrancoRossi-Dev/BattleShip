@@ -461,16 +461,22 @@
             seccionDespliegue.classList.toggle('oculto', habilitado);
         });
 
+        // el lugar también se usa en el diálogo de batalla preparada
         view.handler('lugarBatalla', (lugar) => {
             document.getElementById('lugarBatalla').textContent = lugar;
+            document.getElementById('dialogoLugar').textContent = lugar;
         });
 
         // cada elemento es un TipoBarco: { nombre, tamano }
+        // lista vacía = flota desplegada: se pregunta si librar la batalla. Llega dos veces tras el
+        // último barco (respuesta + SSE), por eso solo se abre si no está abierto.
+        // El diálogo no bloquea el render, así que el último barco se ve detrás
         view.handler('barcosPendientes', (tipos) => {
             barcosPendientes = tipos || [];
             renderBarcos();
             actualizarLeyenda();
             actualizarPreview();
+            if (barcosPendientes.length === 0 && !dialogoLista.open) dialogoLista.showModal();
         });
 
         // océano completo al retomar la batalla
@@ -478,12 +484,6 @@
 
         // solo las celdas del barco recién ubicado (llega por SSE)
         view.handler('barcoUbicado', ({ celdas }) => dibujarCeldas(celdas));
-
-        // el diálogo no bloquea el render, así que el último barco (que llega por SSE) se ve detrás
-        view.handler('confirmarBatallaLista', (lugar) => {
-            document.getElementById('dialogoLugar').textContent = lugar;
-            dialogoLista.showModal();
-        });
 
         view.handler('redirigir', (pagina) => {
             window.location.href = pagina;
